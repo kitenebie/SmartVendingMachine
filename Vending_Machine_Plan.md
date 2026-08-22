@@ -1,5 +1,8 @@
 # ESP32 Vending Machine Plan
 
+> [!IMPORTANT]
+> **Current firmware implementation (4 products):** The active code uses four buttons, four servos, four IR sensors, and a 20x4 I2C LCD with a PCF8574 backpack. On the ESP32 38-pin board, `Pxx` means GPIO xx; `VP` is GPIO 36 and `VN` is GPIO 39. The `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, and `CLK` pins are reserved for flash memory. While dispensing, detection from **any one** of the four IR sensors stops **all servos**; the transaction then applies to the selected product. Older conceptual three-product examples below are historical only where they differ from this notice.
+
 ## 1. Project Overview
 
 Build an ESP32 38-pin based vending machine with these core functions:
@@ -341,7 +344,7 @@ The spring pushes the selected product toward the dispensing chute.
 
 ## 11. IR Delivery Confirmation
 
-The IR sensor is the confirmation that the product was actually dispensed.
+Any one of the four IR sensors can confirm that an object was detected during dispensing.
 
 The system must not consider the transaction successful simply because the servo moved.
 
@@ -354,7 +357,7 @@ Spring pushes product
     ↓
 Product falls
     ↓
-IR Sensor detects product
+Any IR Sensor detects object
     ↓
 SUCCESS
 ```
@@ -363,12 +366,12 @@ SUCCESS
 
 ## 12. Stop Servo After Successful Detection
 
-When the corresponding IR sensor detects the falling product:
+When any one of the four IR sensors detects an object during an active dispense:
 
 ```text
 IR Sensor = DETECTED
        ↓
-Stop Servo
+Stop All Servos
        ↓
 Transaction SUCCESS
 ```
@@ -382,12 +385,12 @@ Servo 1 START
    ↓
 Product 1 falls
    ↓
-IR 1 detects
+Any IR 1–IR 4 detects
    ↓
-Servo 1 STOP
+All Servos STOP
 ```
 
-IR 2 and IR 3 must not confirm Product 1.
+The selected product remains the product whose credit and stock are updated. Ensure all IR sensors are clear before starting a transaction to avoid a false confirmation.
 
 ---
 
@@ -693,16 +696,16 @@ Servo 1 = PUSH
 
 Product falls.
 
-IR 1 detects:
+Any IR sensor detects:
 
 ```text
-IR 1 = ON
+IR 1, IR 2, IR 3, or IR 4 = ON
 ```
 
 System:
 
 ```text
-Servo 1 = STOP
+All servos = STOP
 ```
 
 Transaction:
@@ -812,7 +815,7 @@ Servo 3 starts
        ↓
 Product becomes stuck
        ↓
-IR 3 never detects product
+No IR sensor detects an object
        ↓
 5-second timeout
 ```
@@ -1180,9 +1183,9 @@ loop() {
 
         case DISPENSING:
 
-            if (productDropDetected(selectedProduct)) {
+            if (anyDropSensorDetected()) {
 
-                stopServo(selectedProduct);
+                stopAllServos();
 
                 deductCredits(selectedProduct);
                 decreaseStock(selectedProduct);
@@ -1194,7 +1197,7 @@ loop() {
 
             else if (dispenseTimeout()) {
 
-                stopServo(selectedProduct);
+                stopAllServos();
 
                 displayError();
 
@@ -1232,8 +1235,8 @@ The following rules must always be enforced:
 6. Product selection must check credits.
 7. Servo must not start if credits are insufficient.
 8. Servo must not start if stock is zero.
-9. Only the corresponding IR sensor confirms the selected product.
-10. Servo stops immediately after successful IR detection.
+9. Any one of the four IR sensors confirms an object during active dispensing.
+10. All servos stop immediately after successful IR detection.
 11. Servo must stop after a maximum timeout.
 12. Credits are deducted only after successful delivery.
 13. Stock is deducted only after successful delivery.
@@ -1319,7 +1322,7 @@ Check credits
                SUCCESS       TIMEOUT
                   │             │
                   ▼             ▼
-             Stop Servo      Stop Servo
+          Stop All Servos  Stop All Servos
                   │             │
                   ▼             ▼
              Credit - Price   No Deduction
@@ -1328,7 +1331,7 @@ Check credits
               Stock - 1
                   │
                   ▼
-              Update LED
+              Update LCD
                   │
                   ▼
                  IDLE
@@ -1473,14 +1476,14 @@ Implement:
 11. If valid, start the selected servo.
 12. Servo pushes the spring.
 13. Product falls.
-14. Corresponding IR sensor detects the product.
-15. Servo immediately stops.
+14. Any one of the four IR sensors detects an object.
+15. All servos immediately stop.
 16. Transaction is marked successful.
 17. Credits are deducted.
 18. Product stock is reduced by 1.
 19. LCD displays remaining credits.
 20. Machine returns to the waiting state.
-21. If the IR sensor does not detect the product within the timeout, stop the servo and do not deduct credits or stock.
+21. If none of the IR sensors detects an object within the timeout, stop all servos and do not deduct credits or stock.
 ```
 
 ---
@@ -1499,8 +1502,8 @@ Implement:
 - [ ] Empty stock prevents dispensing.
 - [ ] Correct servo activates for the selected product.
 - [ ] Spring pushes the product.
-- [ ] Correct IR sensor detects the falling product.
-- [ ] Servo stops after successful detection.
+- [ ] Any IR sensor detection stops all servos during dispensing.
+- [ ] All servos stop after successful detection.
 - [ ] Successful delivery deducts credits.
 - [ ] Successful delivery reduces stock.
 - [ ] Failed delivery does not deduct credits.

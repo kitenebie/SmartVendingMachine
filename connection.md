@@ -12,22 +12,26 @@ This document provides the complete hardware wiring diagram, pin mapping, power 
 
 | Component | Component Pin / Wire | ESP32 GPIO / Pin | Pin Type | Notes |
 |:---|:---|:---|:---|:---|
-| **Bottle Proximity Sensor A** | Signal (OUT) | **GPIO 34** | Input | Validates bottle insertion with Sensor B |
-| **Bottle Proximity Sensor B** | Signal (OUT) | **GPIO 35** | Input | Must detect bottle simultaneously |
-| **Product 1 Selection Button** | Signal (NO) | **GPIO 13** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 2 Selection Button** | Signal (NO) | **GPIO 14** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 3 Selection Button** | Signal (NO) | **GPIO 27** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 4 Selection Button** | Signal (NO) | **GPIO 26** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 1 IR Drop Sensor** | Signal (OUT) | **GPIO 36 (VP)** | Input | Confirms Product 1 fell down |
-| **Product 2 IR Drop Sensor** | Signal (OUT) | **GPIO 39 (VN)** | Input | Confirms Product 2 fell down |
-| **Product 3 IR Drop Sensor** | Signal (OUT) | **GPIO 32** | Input | Confirms Product 3 fell down |
-| **Product 4 IR Drop Sensor** | Signal (OUT) | **GPIO 33** | Input | Confirms Product 4 fell down |
-| **Servo 1 (Spring Motor 1)** | Signal (Orange/White) | **GPIO 18** | PWM Output | Dispenses Product 1 |
-| **Servo 2 (Spring Motor 2)** | Signal (Orange/White) | **GPIO 19** | PWM Output | Dispenses Product 2 |
-| **Servo 3 (Spring Motor 3)** | Signal (Orange/White) | **GPIO 21** | PWM Output | Dispenses Product 3 |
-| **Servo 4 (Spring Motor 4)** | Signal (Orange/White) | **GPIO 25** | PWM Output | Dispenses Product 4 |
-| **20x4 I2C LCD Display (SDA)** | Data (SDA) | **GPIO 23** | I2C Data | PCF8574 I2C Backpack |
-| **20x4 I2C LCD Display (SCL)** | Clock (SCL) | **GPIO 22** | I2C Clock | PCF8574 I2C Backpack |
+| **Bottle Proximity Sensor A** | Signal (OUT) | **GPIO 34 / P34** | Input | Validates bottle insertion with Sensor B |
+| **Bottle Proximity Sensor B** | Signal (OUT) | **GPIO 35 / P35** | Input | Must detect bottle simultaneously |
+| **Product 1 Selection Button** | Signal (NO) | **GPIO 13 / P13** | Input (Pull-up) | Connect other pin of button to GND |
+| **Product 2 Selection Button** | Signal (NO) | **GPIO 14 / P14** | Input (Pull-up) | Connect other pin of button to GND |
+| **Product 3 Selection Button** | Signal (NO) | **GPIO 27 / P27** | Input (Pull-up) | Connect other pin of button to GND |
+| **Product 4 Selection Button** | Signal (NO) | **GPIO 26 / P26** | Input (Pull-up) | Connect other pin of button to GND |
+| **Product 1 IR Drop Sensor** | Signal (OUT) | **GPIO 36 / VP** | Input | Any active IR sensor stops all servos |
+| **Product 2 IR Drop Sensor** | Signal (OUT) | **GPIO 39 / VN** | Input | Any active IR sensor stops all servos |
+| **Product 3 IR Drop Sensor** | Signal (OUT) | **GPIO 32 / P32** | Input | Any active IR sensor stops all servos |
+| **Product 4 IR Drop Sensor** | Signal (OUT) | **GPIO 33 / P33** | Input | Any active IR sensor stops all servos |
+| **Servo 1 (Spring Motor 1)** | Signal (Orange/White) | **GPIO 18 / P18** | PWM Output | Dispenses Product 1 |
+| **Servo 2 (Spring Motor 2)** | Signal (Orange/White) | **GPIO 19 / P19** | PWM Output | Dispenses Product 2 |
+| **Servo 3 (Spring Motor 3)** | Signal (Orange/White) | **GPIO 21 / P21** | PWM Output | Dispenses Product 3 |
+| **Servo 4 (Spring Motor 4)** | Signal (Orange/White) | **GPIO 25 / P25** | PWM Output | Dispenses Product 4 |
+| **20x4 I2C LCD Display (SDA)** | Data (SDA) | **GPIO 23 / P23** | I2C Data | PCF8574 I2C Backpack |
+| **20x4 I2C LCD Display (SCL)** | Clock (SCL) | **GPIO 22 / P22** | I2C Clock | PCF8574 I2C Backpack |
+
+---
+
+> **ESP32 38-pin board labels:** Ang `Pxx` sa board ay katumbas ng `GPIO xx`. Ang `VP` ay GPIO 36 at ang `VN` ay GPIO 39. Huwag ikabit ang peripherals sa `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, o `CLK` dahil ginagamit ang mga iyon ng flash memory.
 
 ---
 
@@ -157,6 +161,8 @@ Mount each IR sensor across the dispensing chute of each product:
 - **IR Sensor 3 (Product 3 chute)** Signal → **GPIO 32**
 - **IR Sensor 4 (Product 4 chute)** Signal → **GPIO 33**
 - IR Sensor VCC & GND to 3.3V/5V & Common GND.
+
+> **Dispensing stop rule:** Habang may dispensing transaction, kahit alin sa apat na IR sensors na maka-detect ng object ay agad magpapahinto sa **lahat ng servos**. Siguraduhing walang object sa harap ng kahit anong IR sensor bago magsimula ang dispensing upang maiwasan ang false successful detection.
 
 ---
 

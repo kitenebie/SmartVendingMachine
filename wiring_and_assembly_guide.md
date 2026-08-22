@@ -77,6 +77,8 @@ This guide provides an exhaustive, step-by-step mechanical and electrical manual
 | | SDA (Data) | **YELLOW** | **GPIO 23** | 3.3V I2C Data | ESP32 Pin 23 |
 | | SCL (Clock) | **GREEN** | **GPIO 22** | 3.3V I2C Clock| ESP32 Pin 22 |
 
+> **ESP32 38-pin silk-screen names:** `Pxx` means GPIO xx (halimbawa, `P23` = GPIO 23). Ang `VP` ay GPIO 36 at ang `VN` ay GPIO 39. Iwasan ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, at `CLK` dahil flash-memory pins ang mga ito.
+
 ---
 
 ## 3. 20x4 I2C LCD Display (PCF8574) Wiring
@@ -172,6 +174,8 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 2. Ikonekta ang:
    - IR 1 ➔ **GPIO 36 (VP)**, IR 2 ➔ **GPIO 39 (VN)**, IR 3 ➔ **GPIO 32**, IR 4 ➔ **GPIO 33**.
 
+> **Stop behavior:** Habang nagdi-dispense, kapag kahit alin sa IR 1–IR 4 ay naka-detect ng object, agad ihihinto ng firmware ang **lahat ng apat na servos**. Dapat malinaw ang daanan at walang naka-detect na object sa lahat ng IR sensors bago mag-dispense.
+
 ### Step 5: Front Panel (4 Push Buttons & 20x4 LCD)
 1. I-mount ang 4 na push buttons:
    - Button 1 ➔ **GPIO 13**, Button 2 ➔ **GPIO 14**, Button 3 ➔ **GPIO 27**, Button 4 ➔ **GPIO 26** (kabilang terminals sa GND).
@@ -217,5 +221,5 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 
 1. **Serial Monitor Check:** Buksan ang 115200 baud Serial Monitor. Siguraduhing lumabas ang `[LCD] Found I2C LCD at address 0x27` (o `0x3F`).
 2. **Bottle Entry Test:** Ipasok ang bote para ma-trigger ang Sensor A at B nang sabay. Dapat magbago ang Line 2 ng LCD sa `CREDITS: 01 BOTTLE`.
-3. **Dispense & Drop Test:** Pindutin ang Button 1. Magdi-display ang LCD ng `DISPENSING...`, iikot ang Servo 1, at pagkahulog ng bote sa tapat ng IR Sensor 1, titigil agad ang servo at magdi-display ng `SUCCESSFUL!`.
+3. **Dispense & Drop Test:** Pindutin ang Button 1. Magdi-display ang LCD ng `DISPENSING...` at iikot ang Servo 1. Kapag may object na na-detect ang kahit alin sa IR Sensor 1–4, titigil ang lahat ng servos at magdi-display ang LCD ng `SUCCESSFUL!`.
 4. **Safety Timeout Test:** Subukang mag-dispense kapag walang item. Pagkaraan ng 5 segundo, titigil ang servo at magdi-display ng `DISPENSE ERROR` nang walang bawas sa credits o stock.

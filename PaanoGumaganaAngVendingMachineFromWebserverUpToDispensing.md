@@ -143,15 +143,15 @@ Sa `STATE_DISPENSING`:
 
 1. Ipinapadala ng `setServoDuty()` ang PWM push signal sa servo ng napiling product.
 2. Nagsisimula ang `DISPENSE_TIMEOUT_MS` timer (default: 5 segundo).
-3. Binabantayan ng firmware ang katumbas na IR drop sensor.
-4. Kapag na-detect ng IR sensor ang nahulog na item, titigil ang lahat ng servos.
+3. Binabantayan ng firmware ang lahat ng apat na IR drop sensors.
+4. Kapag kahit alin sa IR sensors ang naka-detect ng object, titigil agad ang lahat ng servos.
 5. Saka lamang ibabawas ang product price sa credits at isang item sa stocks.
 6. Tatawagin ang `saveProducts()` upang maisulat ang bagong stock sa `/products.json`.
 7. Magpapakita ang LCD ng successful delivery at natitirang credits sa loob ng 2.5 segundo bago bumalik sa idle o waiting state.
 
-Ito ang mahalagang safety rule: **hindi binabawasan ang credits at stock hangga't walang successful IR drop detection.**
+Ito ang mahalagang safety rule: **hindi binabawasan ang credits at stock hangga't walang successful IR detection.** Dahil kahit alin sa apat na IR sensor ang puwedeng mag-confirm ng dispense, siguraduhing walang object sa harap ng alinman sa mga sensor bago magsimula ang transaction upang maiwasan ang false successful detection.
 
-Kung hindi mag-trigger ang IR sensor bago matapos ang timeout, hihinto ang servo, mapupunta ang machine sa `STATE_FAILED`, at magpapakita ang LCD ng dispense error. Walang credit o stock na mababawas.
+Kung walang IR sensor na mag-trigger bago matapos ang timeout, hihinto ang lahat ng servos, mapupunta ang machine sa `STATE_FAILED`, at magpapakita ang LCD ng dispense error. Walang credit o stock na mababawas.
 
 ## 9. Buong daloy sa isang tingin
 
@@ -172,7 +172,7 @@ Boot ESP32
                                       ▼
                            Run selected product servo
                                       │
-                      IR detects dropped item? ── Hindi/timeout → error
+                 Any IR sensor detects object? ── Hindi/timeout → error
                                       │ Oo
                                       ▼
                       Stop servo → deduct credit/stock → save products
@@ -198,7 +198,8 @@ Boot ESP32
 
 ## 11. Mahahalagang paalala sa hardware
 
-- Ang 20x4 PCF8574 LCD ay gumagamit ng GND, VCC, SDA, at SCL. Default: SDA = GPIO 23 at SCL = GPIO 22.
+- Ang 20x4 PCF8574 LCD ay gumagamit ng GND, VCC, SDA, at SCL. Default: SDA = GPIO 23 (`P23`) at SCL = GPIO 22 (`P22`).
+- Sa ESP32 38-pin board, ang `Pxx` ay GPIO xx; `VP` ay GPIO 36 at `VN` ay GPIO 39. Huwag gamitin ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, at `CLK` dahil para ang mga ito sa flash memory.
 - Kapag 5 V ang LCD backpack VCC, protektahan ang ESP32 gamit ang bidirectional I2C level shifter o 3.3 V pull-ups sa SDA/SCL. Hindi 5 V tolerant ang ESP32 GPIOs.
 - Gumamit ng hiwalay na 5 V supply para sa servos at ikonekta ang ground nito sa ESP32 ground.
 - I-check ang alignment at logic level ng IR sensors dahil dito nakasalalay ang confirmation bago bawasan ang stock at credit.

@@ -18,7 +18,7 @@ The ESP32 operates in **WiFi Access Point (Hotspot) mode** and acts as both the 
 - **4-Product Dispensing System:**
   - **4x Selection Push Buttons** (with 50ms software debouncing).
   - **4x High-Torque Servos / Spring Dispensing Coils** (with 5-second stall protection timeout).
-  - **4x Product Drop IR Sensors** (confirms physical drop before deducting credit & stock).
+  - **4x Product Drop IR Sensors:** Kapag may na-detect na object ang kahit alin sa apat habang nagdi-dispense, agad hihinto ang lahat ng servos; saka lamang ibabawas ang credit at stock ng napiling product.
 - **Dual Proximity Sensor Bottle Credit System:**
   - Sensor A (Upper) + Sensor B (Lower) must detect the bottle simultaneously to award `+1 Credit`.
   - Anti-double counting lock prevents multiple credits from a single bottle.
@@ -71,24 +71,26 @@ ESP32_Smart_Vending_Machine/
 
 | Component | Default GPIO | Type | Description |
 |:---|:---|:---|:---|
-| **Bottle Sensor A (Upper)** | `GPIO 34` | Input | Proximity sensor A |
-| **Bottle Sensor B (Lower)** | `GPIO 35` | Input | Proximity sensor B |
-| **Button 1 (Product 1)** | `GPIO 13` | Input (Pull-up) | Push button for Product 1 |
-| **Button 2 (Product 2)** | `GPIO 14` | Input (Pull-up) | Push button for Product 2 |
-| **Button 3 (Product 3)** | `GPIO 27` | Input (Pull-up) | Push button for Product 3 |
-| **Button 4 (Product 4)** | `GPIO 26` | Input (Pull-up) | Push button for Product 4 |
-| **IR Drop Sensor 1** | `GPIO 36` (VP) | Input | Drop confirmation Product 1 |
-| **IR Drop Sensor 2** | `GPIO 39` (VN) | Input | Drop confirmation Product 2 |
-| **IR Drop Sensor 3** | `GPIO 32` | Input | Drop confirmation Product 3 |
-| **IR Drop Sensor 4** | `GPIO 33` | Input | Drop confirmation Product 4 |
-| **Servo 1 (Motor 1)** | `GPIO 18` | PWM Out | Spring coil dispenser 1 |
-| **Servo 2 (Motor 2)** | `GPIO 19` | PWM Out | Spring coil dispenser 2 |
-| **Servo 3 (Motor 3)** | `GPIO 21` | PWM Out | Spring coil dispenser 3 |
-| **Servo 4 (Motor 4)** | `GPIO 25` | PWM Out | Spring coil dispenser 4 |
-| **20×4 I2C LCD (SDA)** | `GPIO 23` | I2C Data | PCF8574 serial adapter |
-| **20×4 I2C LCD (SCL)** | `GPIO 22` | I2C Clock | PCF8574 serial adapter |
+| **Bottle Sensor A (Upper)** | `GPIO 34` / `P34` | Input | Proximity sensor A |
+| **Bottle Sensor B (Lower)** | `GPIO 35` / `P35` | Input | Proximity sensor B |
+| **Button 1 (Product 1)** | `GPIO 13` / `P13` | Input (Pull-up) | Push button for Product 1 |
+| **Button 2 (Product 2)** | `GPIO 14` / `P14` | Input (Pull-up) | Push button for Product 2 |
+| **Button 3 (Product 3)** | `GPIO 27` / `P27` | Input (Pull-up) | Push button for Product 3 |
+| **Button 4 (Product 4)** | `GPIO 26` / `P26` | Input (Pull-up) | Push button for Product 4 |
+| **IR Drop Sensor 1** | `GPIO 36` / `VP` | Input | Any active IR sensor stops all servos |
+| **IR Drop Sensor 2** | `GPIO 39` / `VN` | Input | Any active IR sensor stops all servos |
+| **IR Drop Sensor 3** | `GPIO 32` / `P32` | Input | Any active IR sensor stops all servos |
+| **IR Drop Sensor 4** | `GPIO 33` / `P33` | Input | Any active IR sensor stops all servos |
+| **Servo 1 (Motor 1)** | `GPIO 18` / `P18` | PWM Out | Spring coil dispenser 1 |
+| **Servo 2 (Motor 2)** | `GPIO 19` / `P19` | PWM Out | Spring coil dispenser 2 |
+| **Servo 3 (Motor 3)** | `GPIO 21` / `P21` | PWM Out | Spring coil dispenser 3 |
+| **Servo 4 (Motor 4)** | `GPIO 25` / `P25` | PWM Out | Spring coil dispenser 4 |
+| **20×4 I2C LCD (SDA)** | `GPIO 23` / `P23` | I2C Data | PCF8574 serial adapter |
+| **20×4 I2C LCD (SCL)** | `GPIO 22` / `P22` | I2C Clock | PCF8574 serial adapter |
 
 > 💡 *Note: All pins above can be modified via the Web Dashboard without re-flashing!*
+
+> **Board labels:** Sa ESP32 38-pin board, ang `Pxx` ay katumbas ng `GPIO xx`; `VP` ay GPIO 36 at `VN` ay GPIO 39. Huwag gamitin ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, o `CLK` dahil ginagamit ang mga ito ng flash memory.
 
 ---
 
