@@ -109,14 +109,15 @@ String getVendingStateName() {
     }
 }
 
-// Check if IR sensor detects dropped product (Active LOW on standard IR modules)
-static bool isProductDropped(int productIndex) {
+// Return the first IR sensor detecting an object (Active LOW on standard IR modules).
+// Any of the four sensors is allowed to stop an active dispensing operation.
+static int getTriggeredIrSensor() {
     const PinConfig& p = getPinConfig();
-    if (productIndex == 1) return digitalRead(p.ir1) == LOW;
-    if (productIndex == 2) return digitalRead(p.ir2) == LOW;
-    if (productIndex == 3) return digitalRead(p.ir3) == LOW;
-    if (productIndex == 4) return digitalRead(p.ir4) == LOW;
-    return false;
+    if (digitalRead(p.ir1) == LOW) return 1;
+    if (digitalRead(p.ir2) == LOW) return 2;
+    if (digitalRead(p.ir3) == LOW) return 3;
+    if (digitalRead(p.ir4) == LOW) return 4;
+    return 0;
 }
 
 // ------------------------------------------------------------
@@ -219,9 +220,11 @@ void updateVendingMachine() {
         }
 
         case STATE_DISPENSING: {
-            if (isProductDropped(s_selectedProductIndex)) {
+            int triggeredIrSensor = getTriggeredIrSensor();
+            if (triggeredIrSensor != 0) {
                 stopAllServos();
-                Serial.printf("[Vending] Product %d successfully delivered!\n", s_selectedProductIndex);
+                Serial.printf("[Vending] IR sensor %d detected an object; all servos stopped. Product %d delivered!\n",
+                              triggeredIrSensor, s_selectedProductIndex);
 
                 Product* itemPtr = getProductById((uint32_t)s_selectedProductIndex);
                 if (itemPtr) {
