@@ -10,24 +10,23 @@ This document provides the complete hardware wiring diagram, pin mapping, power 
 
 ## 1. Default Pin Mapping Table (4-Product System + 20x4 I2C LCD)
 
-| Component | Component Pin / Wire | ESP32 GPIO / Pin | Pin Type | Notes |
-|:---|:---|:---|:---|:---|
-| **Bottle Proximity Sensor A** | Signal (OUT) | **GPIO 34 / P34** | Input | Validates bottle insertion with Sensor B |
-| **Bottle Proximity Sensor B** | Signal (OUT) | **GPIO 35 / P35** | Input | Must detect bottle simultaneously |
-| **Product 1 Selection Button** | Signal (NO) | **GPIO 13 / P13** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 2 Selection Button** | Signal (NO) | **GPIO 14 / P14** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 3 Selection Button** | Signal (NO) | **GPIO 27 / P27** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 4 Selection Button** | Signal (NO) | **GPIO 26 / P26** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 1 IR Drop Sensor** | Signal (OUT) | **GPIO 16 / P16** | Input | Any active IR sensor stops all servos |
-| **Product 2 IR Drop Sensor** | Signal (OUT) | **GPIO 17 / P17** | Input | Any active IR sensor stops all servos |
-| **Product 3 IR Drop Sensor** | Signal (OUT) | **GPIO 32 / P32** | Input | Any active IR sensor stops all servos |
-| **Product 4 IR Drop Sensor** | Signal (OUT) | **GPIO 33 / P33** | Input | Any active IR sensor stops all servos |
-| **Servo 1 (Spring Motor 1)** | Signal (Orange/White) | **GPIO 18 / P18** | PWM Output | Dispenses Product 1 |
-| **Servo 2 (Spring Motor 2)** | Signal (Orange/White) | **GPIO 19 / P19** | PWM Output | Dispenses Product 2 |
-| **Servo 3 (Spring Motor 3)** | Signal (Orange/White) | **GPIO 21 / P21** | PWM Output | Dispenses Product 3 |
-| **Servo 4 (Spring Motor 4)** | Signal (Orange/White) | **GPIO 25 / P25** | PWM Output | Dispenses Product 4 |
-| **20x4 I2C LCD Display (SDA)** | Data (SDA) | **GPIO 23 / P23** | I2C Data | PCF8574 I2C Backpack |
-| **20x4 I2C LCD Display (SCL)** | Clock (SCL) | **GPIO 22 / P22** | I2C Clock | PCF8574 I2C Backpack |
+| Component | `+` / VCC connection | `−` / GND connection | Required voltage | Signal connection | Notes |
+|:---|:---|:---|:---|:---|:---|
+| **Bottle Proximity Sensor A** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 34 / P34** | `OUT` must be 3.3V max; use a divider/level shifter if its output is 5V. |
+| **Bottle Proximity Sensor B** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 35 / P35** | Same voltage protection as Sensor A; both sensors validate one bottle. |
+| **Product 1 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 13 / P13** | Do **not** connect this button to 5V. |
+| **Product 2 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 14 / P14** | Do **not** connect this button to 5V. |
+| **Product 3 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 27 / P27** | Do **not** connect this button to 5V. |
+| **Product 4 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 26 / P26** | Do **not** connect this button to 5V. |
+| **IR Drop Sensor 1** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 16 / P16** | Any active IR sensor stops all servos. |
+| **IR Drop Sensor 2** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 17 / P17** | If the module needs 5V, level-shift/divide its `OUT` to 3.3V. |
+| **IR Drop Sensor 3** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 32 / P32** | Any active IR sensor stops all servos. |
+| **IR Drop Sensor 4** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 33 / P33** | Any active IR sensor stops all servos. |
+| **Servo 1 (Spring Motor 1)** | External supply `+5V` | External supply `−` / Common GND | `5V` | Signal (orange/white) → **GPIO 18 / P18** | Never power a servo from ESP32 3V3 or VIN. |
+| **Servo 2 (Spring Motor 2)** | External supply `+5V` | External supply `−` / Common GND | `5V` | Signal (orange/white) → **GPIO 19 / P19** | Never power a servo from ESP32 3V3 or VIN. |
+| **Servo 3 (Spring Motor 3)** | External supply `+5V` | External supply `−` / Common GND | `5V` | Signal (orange/white) → **GPIO 21 / P21** | Never power a servo from ESP32 3V3 or VIN. |
+| **Servo 4 (Spring Motor 4)** | External supply `+5V` | External supply `−` / Common GND | `5V` | Signal (orange/white) → **GPIO 25 / P25** | Never power a servo from ESP32 3V3 or VIN. |
+| **20x4 I2C LCD (PCF8574)** | `+5V` from ESP32 VIN or external 5V | Common GND | `5V` | SDA → **GPIO 23 / P23**; SCL → **GPIO 22 / P22** | Put a bidirectional I2C level shifter between LCD SDA/SCL and the ESP32. |
 
 ---
 
