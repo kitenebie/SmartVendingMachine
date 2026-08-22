@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory System</title>
+  <style>
+    body { margin: 0; background: #f1f5f9; display: flex;
+           align-items: center; justify-content: center;
+           height: 100vh; font-family: sans-serif; }
+    p { color: #64748b; }
+  </style>
+</head>
+<body>
+  <p>Redirecting...</p>
+  <script>
+    // Check for an existing valid session; redirect accordingly
+    const token = sessionStorage.getItem('inv_token');
+    if (token) {
+      fetch('/api/session', { headers: { 'X-Session-Token': token } })
+        .then(r => r.json())
+        .then(d => {
+          window.location.href = d.success ? '/data/dashboard.html' : '/data/login.html';
+        })
+        .catch(() => { window.location.href = '/data/login.html'; });
+    } else {
+      window.location.href = '/login.html';
+    }
+  </script>
+</body>
+</html>

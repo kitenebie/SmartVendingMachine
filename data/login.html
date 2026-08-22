@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Login — Inventory System</title>
+  <link rel="stylesheet" href="/data/css/style.css"/>
+</head>
+<body class="login-page">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <!-- Logo / Title -->
+      <div class="login-logo">
+        <div class="logo-icon">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="10" fill="#2563EB"/>
+            <path d="M10 14h20M10 20h20M10 26h12" stroke="#fff" stroke-width="2.5"
+                  stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1 class="login-title">Inventory System</h1>
+        <p class="login-subtitle">ESP32 Inventory Manager</p>
+      </div>
+
+      <!-- Alert -->
+      <div id="alert" class="alert hidden"></div>
+
+      <!-- Form -->
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username"
+                 placeholder="Enter username" autocomplete="username" required/>
+          <span class="field-error" id="usernameErr"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-icon-wrap">
+            <input type="password" id="password" name="password"
+                   placeholder="Enter password" autocomplete="current-password" required/>
+            <button type="button" class="icon-btn" id="togglePwd" title="Show/hide password">
+              <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg id="eyeOffIcon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                   class="hidden">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8
+                          a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112
+                          4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07
+                          a3 3 0 11-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="passwordErr"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+          <span id="loginText">Login</span>
+          <span id="loginSpinner" class="spinner hidden"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/data/js/auth.js"></script>
+  <script>
+    // Redirect if already logged in
+    (async () => {
+      const token = getToken();
+      if (token) {
+        try {
+          const r = await fetch('/api/session',
+            { headers: { 'X-Session-Token': token } });
+          const d = await r.json();
+          if (d.success) { window.location.href = '/data/dashboard.html'; return; }
+        } catch(_) {}
+        clearToken();
+      }
+    })();
+
+    const form     = document.getElementById('loginForm');
+    const alert    = document.getElementById('alert');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginTxt = document.getElementById('loginText');
+    const spinner  = document.getElementById('loginSpinner');
+
+    // Toggle password visibility
+    document.getElementById('togglePwd').addEventListener('click', () => {
+      const pwd = document.getElementById('password');
+      const eye    = document.getElementById('eyeIcon');
+      const eyeOff = document.getElementById('eyeOffIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        eye.classList.add('hidden');
+        eyeOff.classList.remove('hidden');
+      } else {
+        pwd.type = 'password';
+        eye.classList.remove('hidden');
+        eyeOff.classList.add('hidden');
+      }
+    });
+
+    function showAlert(msg, type = 'error') {
+      alert.textContent = msg;
+      alert.className = 'alert alert-' + type;
+    }
+
+    function clearFieldErrors() {
+      document.getElementById('usernameErr').textContent = '';
+      document.getElementById('passwordErr').textContent = '';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearFieldErrors();
+      alert.className = 'alert hidden';
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      let valid = true;
+      if (!username) {
+        document.getElementById('usernameErr').textContent = 'Username is required';
+        valid = false;
+      }
+      if (!password) {
+        document.getElementById('passwordErr').textContent = 'Password is required';
+        valid = false;
+      }
+      if (!valid) return;
+
+      // Show loading state
+      loginBtn.disabled = true;
+      loginTxt.classList.add('hidden');
+      spinner.classList.remove('hidden');
+
+      try {
+        const resp = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+          setToken(data.token);
+          window.location.href = '/data/dashboard.html';
+        } else {
+          showAlert(data.message || 'Login failed');
+          loginBtn.disabled = false;
+          loginTxt.classList.remove('hidden');
+          spinner.classList.add('hidden');
+        }
+      } catch (err) {
+        showAlert('Cannot connect to device. Check your network.');
+        loginBtn.disabled = false;
+        loginTxt.classList.remove('hidden');
+        spinner.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
