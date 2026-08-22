@@ -7,7 +7,7 @@
 
 // ESP32 38-pin board silk-screen guide:
 // Pxx means GPIO xx (for example, P23 = GPIO 23).
-// VP = GPIO 36 and VN = GPIO 39; some board variants print these as P36/P39.
+// This project uses normal P-labelled pins for every IR sensor; VP/VN are not used.
 // Do not use SD0, SD1, SD2, SD3, CMD, or CLK: they are connected to the ESP32 flash.
 
 // ---- WiFi Access Point (Hotspot) Settings ------------------
@@ -30,8 +30,8 @@
 #define BTN_DEBOUNCE_MS 50
 
 // ---- IR Drop / Delivery Sensors (4 Sensors) ----------------
-#define PIN_IR_1        36     // IR sensor 1 — board pin VP / GPIO 36 (input only)
-#define PIN_IR_2        39     // IR sensor 2 — board pin VN / GPIO 39 (input only)
+#define PIN_IR_1        16     // IR sensor 1 — board pin P16 / GPIO 16 (input)
+#define PIN_IR_2        17     // IR sensor 2 — board pin P17 / GPIO 17 (input)
 #define PIN_IR_3        32     // IR sensor 3 — board pin P32 / GPIO 32 (input)
 #define PIN_IR_4        33     // IR sensor 4 — board pin P33 / GPIO 33 (input)
 

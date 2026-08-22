@@ -15,8 +15,8 @@ static PinConfig s_pins = {
     14, // btn2
     27, // btn3
     26, // btn4
-    36, // ir1 (VP)
-    39, // ir2 (VN)
+    16, // ir1 (P16)
+    17, // ir2 (P17)
     32, // ir3
     33, // ir4
     18, // servo1
@@ -72,6 +72,16 @@ void initPinConfig() {
     s_pins.lcdSda  = doc["lcdSda"]  | (doc["dispDio"] | s_pins.lcdSda);
     s_pins.lcdScl  = doc["lcdScl"]  | (doc["dispClk"] | s_pins.lcdScl);
 
+    // Migrate the previous IR 1/IR 2 defaults away from VP/VN to P16/P17.
+    bool migratedIrPins = false;
+    if (s_pins.ir1 == 36) { s_pins.ir1 = 16; migratedIrPins = true; }
+    if (s_pins.ir2 == 39) { s_pins.ir2 = 17; migratedIrPins = true; }
+
+    if (migratedIrPins) {
+        savePinConfig(s_pins);
+        Serial.println("[PinConfig] Migrated IR 1/IR 2 from VP/VN to P16/P17.");
+    }
+
     Serial.println("[PinConfig] Custom GPIO pins loaded successfully from LittleFS.");
 }
 
@@ -110,6 +120,6 @@ bool savePinConfig(const PinConfig& cfg) {
 }
 
 void resetPinConfigToDefaults() {
-    PinConfig defaults = {34, 35, 13, 14, 27, 26, 36, 39, 32, 33, 18, 19, 21, 25, 23, 22};
+    PinConfig defaults = {34, 35, 13, 14, 27, 26, 16, 17, 32, 33, 18, 19, 21, 25, 23, 22};
     savePinConfig(defaults);
 }

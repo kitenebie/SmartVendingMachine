@@ -52,9 +52,9 @@ This guide provides an exhaustive, step-by-step mechanical and electrical manual
 | | Terminal B | **BLACK** | — | 0V | ESP32 GND |
 | **Button 4 (Product 4)** | Terminal A | **WHITE/BLUE** | **GPIO 26** | 3.3V Pullup | ESP32 Pin 26 |
 | | Terminal B | **BLACK** | — | 0V | ESP32 GND |
-| **IR Drop Sensor 1** | Signal (OUT) | **YELLOW** | **GPIO 36 (VP)** | 3.3V Active LOW| ESP32 Pin 36 |
+| **IR Drop Sensor 1** | Signal (OUT) | **YELLOW** | **GPIO 16 (P16)** | 3.3V Active LOW| ESP32 Pin 16 |
 | | VCC & GND | **RED / BLACK**| — | 3.3V / 5V | Power Bus & Common GND |
-| **IR Drop Sensor 2** | Signal (OUT) | **YELLOW** | **GPIO 39 (VN)** | 3.3V Active LOW| ESP32 Pin 39 |
+| **IR Drop Sensor 2** | Signal (OUT) | **YELLOW** | **GPIO 17 (P17)** | 3.3V Active LOW| ESP32 Pin 17 |
 | | VCC & GND | **RED / BLACK**| — | 3.3V / 5V | Power Bus & Common GND |
 | **IR Drop Sensor 3** | Signal (OUT) | **YELLOW** | **GPIO 32** | 3.3V Active LOW| ESP32 Pin 32 |
 | | VCC & GND | **RED / BLACK**| — | 3.3V / 5V | Power Bus & Common GND |
@@ -77,7 +77,7 @@ This guide provides an exhaustive, step-by-step mechanical and electrical manual
 | | SDA (Data) | **YELLOW** | **GPIO 23** | 3.3V I2C Data | ESP32 Pin 23 |
 | | SCL (Clock) | **GREEN** | **GPIO 22** | 3.3V I2C Clock| ESP32 Pin 22 |
 
-> **ESP32 38-pin silk-screen names:** `Pxx` means GPIO xx (halimbawa, `P23` = GPIO 23). Ang `VP` ay GPIO 36 at ang `VN` ay GPIO 39. Iwasan ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, at `CLK` dahil flash-memory pins ang mga ito.
+> **ESP32 38-pin silk-screen names:** `Pxx` means GPIO xx (halimbawa, `P23` = GPIO 23). Ang IR sensors ay gumagamit ng `P16`, `P17`, `P32`, at `P33`; hindi ginagamit ang `VP` o `VN`. Iwasan ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, at `CLK` dahil flash-memory pins ang mga ito.
 
 ---
 
@@ -172,7 +172,7 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 ### Step 4: IR Drop Detection Sensors
 1. I-mount ang 4 na IR drop sensors sa ilalim ng dispensing chute.
 2. Ikonekta ang:
-   - IR 1 ➔ **GPIO 36 (VP)**, IR 2 ➔ **GPIO 39 (VN)**, IR 3 ➔ **GPIO 32**, IR 4 ➔ **GPIO 33**.
+   - IR 1 ➔ **GPIO 16 (P16)**, IR 2 ➔ **GPIO 17 (P17)**, IR 3 ➔ **GPIO 32 (P32)**, IR 4 ➔ **GPIO 33 (P33)**.
 
 > **Stop behavior:** Habang nagdi-dispense, kapag kahit alin sa IR 1–IR 4 ay naka-detect ng object, agad ihihinto ng firmware ang **lahat ng apat na servos**. Dapat malinaw ang daanan at walang naka-detect na object sa lahat ng IR sensors bago mag-dispense.
 

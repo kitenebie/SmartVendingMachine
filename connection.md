@@ -18,8 +18,8 @@ This document provides the complete hardware wiring diagram, pin mapping, power 
 | **Product 2 Selection Button** | Signal (NO) | **GPIO 14 / P14** | Input (Pull-up) | Connect other pin of button to GND |
 | **Product 3 Selection Button** | Signal (NO) | **GPIO 27 / P27** | Input (Pull-up) | Connect other pin of button to GND |
 | **Product 4 Selection Button** | Signal (NO) | **GPIO 26 / P26** | Input (Pull-up) | Connect other pin of button to GND |
-| **Product 1 IR Drop Sensor** | Signal (OUT) | **GPIO 36 / VP** | Input | Any active IR sensor stops all servos |
-| **Product 2 IR Drop Sensor** | Signal (OUT) | **GPIO 39 / VN** | Input | Any active IR sensor stops all servos |
+| **Product 1 IR Drop Sensor** | Signal (OUT) | **GPIO 16 / P16** | Input | Any active IR sensor stops all servos |
+| **Product 2 IR Drop Sensor** | Signal (OUT) | **GPIO 17 / P17** | Input | Any active IR sensor stops all servos |
 | **Product 3 IR Drop Sensor** | Signal (OUT) | **GPIO 32 / P32** | Input | Any active IR sensor stops all servos |
 | **Product 4 IR Drop Sensor** | Signal (OUT) | **GPIO 33 / P33** | Input | Any active IR sensor stops all servos |
 | **Servo 1 (Spring Motor 1)** | Signal (Orange/White) | **GPIO 18 / P18** | PWM Output | Dispenses Product 1 |
@@ -31,7 +31,7 @@ This document provides the complete hardware wiring diagram, pin mapping, power 
 
 ---
 
-> **ESP32 38-pin board labels:** Ang `Pxx` sa board ay katumbas ng `GPIO xx`. Ang `VP` ay GPIO 36 at ang `VN` ay GPIO 39. Huwag ikabit ang peripherals sa `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, o `CLK` dahil ginagamit ang mga iyon ng flash memory.
+> **ESP32 38-pin board labels:** Ang `Pxx` sa board ay katumbas ng `GPIO xx`. Ang IR sensors ay nakalagay sa `P16`, `P17`, `P32`, at `P33`; hindi ginagamit ang `VP` o `VN`. Huwag ikabit ang peripherals sa `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, o `CLK` dahil ginagamit ang mga iyon ng flash memory.
 
 ---
 
@@ -85,8 +85,8 @@ Ang 20x4 Character LCD na may I2C Backpack ay gumagamit lamang ng **4 na wires**
      |                                                                        |
      |   [GPIO 34] <--- Bottle Sensor A OUT (3.3V safe)                       |
      |   [GPIO 35] <--- Bottle Sensor B OUT (3.3V safe)                       |
-     |   [GPIO 36] <--- IR Drop 1 OUT (3.3V safe)                             |
-     |   [GPIO 39] <--- IR Drop 2 OUT (3.3V safe)                             |
+     |   [GPIO 16] <--- IR Drop 1 OUT (3.3V safe)                             |
+     |   [GPIO 17] <--- IR Drop 2 OUT (3.3V safe)                             |
      |   [GPIO 32] <--- IR Drop 3 OUT (3.3V safe)                             |
      |   [GPIO 33] <--- IR Drop 4 OUT (3.3V safe)                             |
      |   [GPIO 13] <--- Push Button 1 (to GND)                                |
@@ -156,8 +156,8 @@ Connect the **GND of the External 5V Power Supply** directly to an **ESP32 GND p
 
 ### Step 6: Connect the 4 IR Drop / Fall Sensors
 Mount each IR sensor across the dispensing chute of each product:
-- **IR Sensor 1 (Product 1 chute)** Signal → **GPIO 36 (VP)**
-- **IR Sensor 2 (Product 2 chute)** Signal → **GPIO 39 (VN)**
+- **IR Sensor 1 (Product 1 chute)** Signal → **GPIO 16 (P16)**
+- **IR Sensor 2 (Product 2 chute)** Signal → **GPIO 17 (P17)**
 - **IR Sensor 3 (Product 3 chute)** Signal → **GPIO 32**
 - **IR Sensor 4 (Product 4 chute)** Signal → **GPIO 33**
 - IR Sensor VCC & GND to 3.3V/5V & Common GND.

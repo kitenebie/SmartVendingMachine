@@ -6,7 +6,7 @@
 const DEFAULT_PINS = {
   sensorA: 34, sensorB: 35,
   btn1: 13, btn2: 14, btn3: 27, btn4: 26,
-  ir1: 36, ir2: 39, ir3: 32, ir4: 33,
+  ir1: 16, ir2: 17, ir3: 32, ir4: 33,
   servo1: 18, servo2: 19, servo3: 21, servo4: 25,
   lcdSda: 23, lcdScl: 22
 };

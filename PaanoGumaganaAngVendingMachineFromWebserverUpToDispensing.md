@@ -199,7 +199,7 @@ Boot ESP32
 ## 11. Mahahalagang paalala sa hardware
 
 - Ang 20x4 PCF8574 LCD ay gumagamit ng GND, VCC, SDA, at SCL. Default: SDA = GPIO 23 (`P23`) at SCL = GPIO 22 (`P22`).
-- Sa ESP32 38-pin board, ang `Pxx` ay GPIO xx; `VP` ay GPIO 36 at `VN` ay GPIO 39. Huwag gamitin ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, at `CLK` dahil para ang mga ito sa flash memory.
+- Sa ESP32 38-pin board, ang `Pxx` ay GPIO xx. Ang IR sensors ay nasa `P16` (IR 1), `P17` (IR 2), `P32` (IR 3), at `P33` (IR 4); hindi ginagamit ang `VP` o `VN`. Huwag gamitin ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, at `CLK` dahil para ang mga ito sa flash memory.
 - Kapag 5 V ang LCD backpack VCC, protektahan ang ESP32 gamit ang bidirectional I2C level shifter o 3.3 V pull-ups sa SDA/SCL. Hindi 5 V tolerant ang ESP32 GPIOs.
 - Gumamit ng hiwalay na 5 V supply para sa servos at ikonekta ang ground nito sa ESP32 ground.
 - I-check ang alignment at logic level ng IR sensors dahil dito nakasalalay ang confirmation bago bawasan ang stock at credit.

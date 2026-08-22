@@ -1,7 +1,7 @@
 # ESP32 Vending Machine Plan
 
 > [!IMPORTANT]
-> **Current firmware implementation (4 products):** The active code uses four buttons, four servos, four IR sensors, and a 20x4 I2C LCD with a PCF8574 backpack. On the ESP32 38-pin board, `Pxx` means GPIO xx; `VP` is GPIO 36 and `VN` is GPIO 39. The `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, and `CLK` pins are reserved for flash memory. While dispensing, detection from **any one** of the four IR sensors stops **all servos**; the transaction then applies to the selected product. Older conceptual three-product examples below are historical only where they differ from this notice.
+> **Current firmware implementation (4 products):** The active code uses four buttons, four servos, four IR sensors, and a 20x4 I2C LCD with a PCF8574 backpack. On the ESP32 38-pin board, `Pxx` means GPIO xx. IR 1–IR 4 use `P16`, `P17`, `P32`, and `P33`, respectively; `VP` and `VN` are not used. The `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, and `CLK` pins are reserved for flash memory. While dispensing, detection from **any one** of the four IR sensors stops **all servos**; the transaction then applies to the selected product. Older conceptual three-product examples below are historical only where they differ from this notice.
 
 ## 1. Project Overview
 

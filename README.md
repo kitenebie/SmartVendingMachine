@@ -77,8 +77,8 @@ ESP32_Smart_Vending_Machine/
 | **Button 2 (Product 2)** | `GPIO 14` / `P14` | Input (Pull-up) | Push button for Product 2 |
 | **Button 3 (Product 3)** | `GPIO 27` / `P27` | Input (Pull-up) | Push button for Product 3 |
 | **Button 4 (Product 4)** | `GPIO 26` / `P26` | Input (Pull-up) | Push button for Product 4 |
-| **IR Drop Sensor 1** | `GPIO 36` / `VP` | Input | Any active IR sensor stops all servos |
-| **IR Drop Sensor 2** | `GPIO 39` / `VN` | Input | Any active IR sensor stops all servos |
+| **IR Drop Sensor 1** | `GPIO 16` / `P16` | Input | Any active IR sensor stops all servos |
+| **IR Drop Sensor 2** | `GPIO 17` / `P17` | Input | Any active IR sensor stops all servos |
 | **IR Drop Sensor 3** | `GPIO 32` / `P32` | Input | Any active IR sensor stops all servos |
 | **IR Drop Sensor 4** | `GPIO 33` / `P33` | Input | Any active IR sensor stops all servos |
 | **Servo 1 (Motor 1)** | `GPIO 18` / `P18` | PWM Out | Spring coil dispenser 1 |
@@ -90,7 +90,7 @@ ESP32_Smart_Vending_Machine/
 
 > 💡 *Note: All pins above can be modified via the Web Dashboard without re-flashing!*
 
-> **Board labels:** Sa ESP32 38-pin board, ang `Pxx` ay katumbas ng `GPIO xx`; `VP` ay GPIO 36 at `VN` ay GPIO 39. Huwag gamitin ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, o `CLK` dahil ginagamit ang mga ito ng flash memory.
+> **Board labels:** Sa ESP32 38-pin board, ang `Pxx` ay katumbas ng `GPIO xx`. Ang lahat ng IR sensors ay nasa P-labelled pins (`P16`, `P17`, `P32`, at `P33`); hindi ginagamit ang `VP` o `VN`. Huwag gamitin ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, o `CLK` dahil ginagamit ang mga ito ng flash memory.
 
 ---
 
