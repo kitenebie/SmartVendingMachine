@@ -23,8 +23,8 @@ static PinConfig s_pins = {
     19, // servo2
     21, // servo3
     25, // servo4
-    22, // dispClk
-    23  // dispDio
+    23, // lcdSda
+    22  // lcdScl
 };
 
 bool isValidGpio(int pin, bool allowInputOnly) {
@@ -69,8 +69,8 @@ void initPinConfig() {
     s_pins.servo2  = doc["servo2"]  | s_pins.servo2;
     s_pins.servo3  = doc["servo3"]  | s_pins.servo3;
     s_pins.servo4  = doc["servo4"]  | s_pins.servo4;
-    s_pins.dispClk = doc["dispClk"] | s_pins.dispClk;
-    s_pins.dispDio = doc["dispDio"] | s_pins.dispDio;
+    s_pins.lcdSda  = doc["lcdSda"]  | (doc["dispDio"] | s_pins.lcdSda);
+    s_pins.lcdScl  = doc["lcdScl"]  | (doc["dispClk"] | s_pins.lcdScl);
 
     Serial.println("[PinConfig] Custom GPIO pins loaded successfully from LittleFS.");
 }
@@ -97,8 +97,8 @@ bool savePinConfig(const PinConfig& cfg) {
     doc["servo2"]  = s_pins.servo2;
     doc["servo3"]  = s_pins.servo3;
     doc["servo4"]  = s_pins.servo4;
-    doc["dispClk"] = s_pins.dispClk;
-    doc["dispDio"] = s_pins.dispDio;
+    doc["lcdSda"]  = s_pins.lcdSda;
+    doc["lcdScl"]  = s_pins.lcdScl;
 
     String out;
     serializeJson(doc, out);
@@ -110,6 +110,6 @@ bool savePinConfig(const PinConfig& cfg) {
 }
 
 void resetPinConfigToDefaults() {
-    PinConfig defaults = {34, 35, 13, 14, 27, 26, 36, 39, 32, 33, 18, 19, 21, 25, 22, 23};
+    PinConfig defaults = {34, 35, 13, 14, 27, 26, 36, 39, 32, 33, 18, 19, 21, 25, 23, 22};
     savePinConfig(defaults);
 }

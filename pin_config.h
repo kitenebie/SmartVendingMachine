@@ -20,8 +20,8 @@ struct PinConfig {
     int servo2;      // Servo Motor 2
     int servo3;      // Servo Motor 3
     int servo4;      // Servo Motor 4
-    int dispClk;     // 7-Segment CLK
-    int dispDio;     // 7-Segment DIO
+    int lcdSda;      // 20x4 LCD I2C SDA
+    int lcdScl;      // 20x4 LCD I2C SCL
 };
 
 /** Load pin configuration from LittleFS /pins.json (or defaults if missing). */

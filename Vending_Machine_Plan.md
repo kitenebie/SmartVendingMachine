@@ -6,7 +6,7 @@ Build an ESP32 38-pin based vending machine with these core functions:
 
 - Detect an inserted bottle using two proximity sensors.
 - Both proximity sensors must detect the same bottle before adding +1 credit.
-- Display current credits using an LED/7-segment display.
+- Display credits and vending status on a 20x4 I2C LCD with a PCF8574 adapter.
 - Provide 3 product-selection buttons.
 - Each button corresponds to one product and one dispensing servo.
 - Each servo drives a spring/pusher mechanism.
@@ -34,7 +34,7 @@ Build an ESP32 38-pin based vending machine with these core functions:
           ┌─────────────────────────┼────────────────────────┐
           │                         │                        │
           ▼                         ▼                        ▼
-  2x Bottle Sensors          3x Product Buttons       LED Display
+  2x Bottle Sensors          3x Product Buttons       20x4 I2C LCD
   Sensor A + Sensor B        Button 1 → Product 1     Credits
                              Button 2 → Product 2     Product
                              Button 3 → Product 3     Status
@@ -99,7 +99,7 @@ IR 3 → Product 3 delivery
 
 ### User Feedback
 
-Use a 4-digit 7-segment LED display or equivalent LED display.
+Use a 20x4 character LCD with a PCF8574 I2C adapter (GND, VCC, SDA, and SCL).
 
 The display should show:
 
@@ -587,41 +587,37 @@ Flow:
 
 ---
 
-## 18. LED / 7-Segment Display
+## 18. 20x4 I2C LCD Display
 
 Recommended display states:
 
-| State | Display |
+| State | LCD message |
 |---|---|
-| Idle | `C 00` |
-| 1 Credit | `C 01` |
-| 2 Credits | `C 02` |
-| 3 Credits | `C 03` |
-| Product 1 | `P1` |
-| Product 2 | `P2` |
-| Product 3 | `P3` |
-| Dispensing | `SALE` |
-| Success | `DONE` |
-| No Credit | `NOCR` |
-| Out of Stock | `EMPT` |
-| Timeout/Error | `ERR` |
+| Idle | Credits and product menu |
+| Product selected | Product name, price, and available credits |
+| Dispensing | Product and delivery progress |
+| Success | Confirmation and remaining credits |
+| No credit | Required and available credits |
+| Out of stock | Product unavailable notice |
+| Timeout/error | Dispensing error notice |
 
 Example:
 
 ```text
-C 03
+=== SMART VENDING ==
+ CREDITS: 03 BOTTLE
 ```
 
 Button 2 pressed:
 
 ```text
-P2
+SELECT: P2
 ```
 
 Dispensing:
 
 ```text
-SALE
+=== DISPENSING... ==
 ```
 
 Successful delivery:
@@ -991,7 +987,7 @@ Servo 1          → GPIO
 Servo 2          → GPIO
 Servo 3          → GPIO
 
-7-Segment Display → GPIO / appropriate interface
+20x4 I2C LCD      → SDA and SCL GPIOs
 ```
 
 Before coding, create a final GPIO table and verify no conflicts with:
@@ -1262,7 +1258,7 @@ Initialize buttons
    ↓
 Initialize servos
    ↓
-Initialize LED display
+Initialize 20x4 I2C LCD
    ↓
 Load product configuration
    ↓
@@ -1381,7 +1377,7 @@ This allows product prices and stock to be changed without modifying firmware.
 - Buttons
 - Servos
 - IR sensors
-- LED display
+- 20x4 I2C LCD
 
 Test every component independently.
 
@@ -1469,7 +1465,7 @@ Implement:
 3. Proximity Sensor B detects it.
 4. ESP32 validates both sensors.
 5. Credit increases by 1.
-6. LED display updates.
+6. LCD updates the credit display.
 7. User presses Product 1, 2, or 3.
 8. ESP32 checks product stock.
 9. ESP32 checks available credits.
@@ -1482,7 +1478,7 @@ Implement:
 16. Transaction is marked successful.
 17. Credits are deducted.
 18. Product stock is reduced by 1.
-19. LED displays remaining credits.
+19. LCD displays remaining credits.
 20. Machine returns to the waiting state.
 21. If the IR sensor does not detect the product within the timeout, stop the servo and do not deduct credits or stock.
 ```
@@ -1510,9 +1506,9 @@ Implement:
 - [ ] Failed delivery does not deduct credits.
 - [ ] Failed delivery does not reduce stock.
 - [ ] Servo timeout works.
-- [ ] LED display shows credits.
-- [ ] LED display shows selected product.
-- [ ] LED display shows success/error states.
+- [ ] LCD shows credits.
+- [ ] LCD shows selected product.
+- [ ] LCD shows success/error states.
 - [ ] Only one transaction runs at a time.
 - [ ] Servo power is properly isolated from ESP32 GPIO power.
 - [ ] All sensor signal voltages are safe for ESP32 GPIO.

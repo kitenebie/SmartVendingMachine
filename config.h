@@ -1,7 +1,7 @@
 ﻿#pragma once
 // ============================================================
 //  config.h -- ESP32 Smart Vending Machine & Hotspot Settings
-//  Updated for 4 Products (4x Buttons, 4x Servos, 4x IR Sensors)
+//  Updated for 20x4 I2C LCD Display (PCF8574 Adapter)
 // ============================================================
 #include <Arduino.h>
 
@@ -37,6 +37,9 @@
 #define PIN_SERVO_4     25     // Servo motor 4
 #define DISPENSE_TIMEOUT_MS  5000  // Maximum run time before auto-stopping stuck servo
 
-// ---- 7-Segment Display (TM1637) ----------------------------
-#define PIN_DISP_CLK    22     // TM1637 Clock
-#define PIN_DISP_DIO    23     // TM1637 Data I/O
+// ---- 20x4 I2C LCD Display (PCF8574) -----------------------
+#define PIN_LCD_SDA     23     // I2C Data (SDA)
+#define PIN_LCD_SCL     22     // I2C Clock (SCL)
+#define LCD_I2C_ADDR    0x27   // Common PCF8574 address: 0x27 or 0x3F
+#define LCD_COLS        20
+#define LCD_ROWS        4

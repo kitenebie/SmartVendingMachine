@@ -22,8 +22,8 @@ The ESP32 operates in **WiFi Access Point (Hotspot) mode** and acts as both the 
 - **Dual Proximity Sensor Bottle Credit System:**
   - Sensor A (Upper) + Sensor B (Lower) must detect the bottle simultaneously to award `+1 Credit`.
   - Anti-double counting lock prevents multiple credits from a single bottle.
-- **Hardware Status Display (7-Segment TM1637 / I2C LCD):**
-  - Live status codes: `C 00` (Credits), `P1`–`P4` (Product Selected), `SALE` (Dispensing), `DONE` (Success), `NOCR` (No Credit), `EMPT` (Out of Stock), `ERR` (Timeout Error).
+- **20×4 I2C Status Display (PCF8574):**
+  - Shows credits, product selection, dispensing progress, successful delivery, insufficient-credit, out-of-stock, and error messages across four 20-character lines.
 - **Web-Based GPIO Pin Management:**
   - Fully reconfigurable GPIO pins directly from the web browser (`Configuration` page).
   - Saved persistently to `/pins.json` in LittleFS and applied live to hardware without re-flashing!
@@ -42,7 +42,7 @@ ESP32_Smart_Vending_Machine/
 ├── config.h                        <- Hotspot settings & default GPIO pin definitions
 ├── pin_config.h / .cpp             <- Dynamic GPIO pin storage & live manager (/pins.json)
 ├── vending_controller.h / .cpp     <- State machine, dual bottle sensor logic, buttons & servos
-├── display_manager.h / .cpp        <- 7-Segment (TM1637) & hardware status display
+├── display_manager.h / .cpp        <- 20×4 I2C LCD (PCF8574) status display
 ├── wifi_manager.h / .cpp           <- WiFi Access Point (Hotspot) handler
 ├── storage.h / .cpp                <- LittleFS filesystem helper
 ├── auth.h / .cpp                   <- NVS admin authentication & session tokens
@@ -85,8 +85,8 @@ ESP32_Smart_Vending_Machine/
 | **Servo 2 (Motor 2)** | `GPIO 19` | PWM Out | Spring coil dispenser 2 |
 | **Servo 3 (Motor 3)** | `GPIO 21` | PWM Out | Spring coil dispenser 3 |
 | **Servo 4 (Motor 4)** | `GPIO 25` | PWM Out | Spring coil dispenser 4 |
-| **7-Segment Display (CLK)** | `GPIO 22` | Output | TM1637 Clock |
-| **7-Segment Display (DIO)** | `GPIO 23` | I/O | TM1637 Data |
+| **20×4 I2C LCD (SDA)** | `GPIO 23` | I2C Data | PCF8574 serial adapter |
+| **20×4 I2C LCD (SCL)** | `GPIO 22` | I2C Clock | PCF8574 serial adapter |
 
 > 💡 *Note: All pins above can be modified via the Web Dashboard without re-flashing!*
 

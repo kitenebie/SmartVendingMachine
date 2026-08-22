@@ -1,6 +1,6 @@
 ﻿// ============================================================
 //  vending_controller.cpp -- Vending Controller State Machine
-//  Uses Dynamic Configurable GPIO Pins from pin_config.h
+//  Integrates 4-Product Dispensing with 20x4 I2C LCD Display
 // ============================================================
 #include "vending_controller.h"
 #include "config.h"
@@ -72,11 +72,11 @@ void initVendingMachine() {
     ledcAttach(p.servo4, SERVO_PWM_FREQ, SERVO_PWM_RES);
     stopAllServos();
 
-    // Display
+    // Initialize 20x4 I2C LCD Display
     initDisplay();
     displayCredits(s_credits);
 
-    Serial.println("[Vending] Controller initialized with dynamic GPIO pins.");
+    Serial.println("[Vending] Controller initialized with 20x4 I2C LCD.");
 }
 
 int getCurrentCredits() {
@@ -156,22 +156,18 @@ void updateVendingMachine() {
             s_lastBtn1Press = now;
             s_selectedProductIndex = 1;
             s_state = STATE_CHECKING_PRODUCT;
-            displayProduct(1);
         } else if (digitalRead(p.btn2) == LOW && (now - s_lastBtn2Press > BTN_DEBOUNCE_MS)) {
             s_lastBtn2Press = now;
             s_selectedProductIndex = 2;
             s_state = STATE_CHECKING_PRODUCT;
-            displayProduct(2);
         } else if (digitalRead(p.btn3) == LOW && (now - s_lastBtn3Press > BTN_DEBOUNCE_MS)) {
             s_lastBtn3Press = now;
             s_selectedProductIndex = 3;
             s_state = STATE_CHECKING_PRODUCT;
-            displayProduct(3);
         } else if (digitalRead(p.btn4) == LOW && (now - s_lastBtn4Press > BTN_DEBOUNCE_MS)) {
             s_lastBtn4Press = now;
             s_selectedProductIndex = 4;
             s_state = STATE_CHECKING_PRODUCT;
-            displayProduct(4);
         }
     }
 
@@ -192,11 +188,14 @@ void updateVendingMachine() {
             }
 
             int requiredCredits = itemPtr ? (int)itemPtr->price : 1;
-            int stockAvailable = itemPtr ? itemPtr->stocks : 0;
+            int stockAvailable  = itemPtr ? itemPtr->stocks : 0;
+            String prodName     = itemPtr ? itemPtr->name : ("Product " + String(s_selectedProductIndex));
+
+            displayProductSelected(s_selectedProductIndex, prodName, (float)requiredCredits, s_credits);
 
             if (!itemPtr || stockAvailable <= 0) {
                 Serial.printf("[Vending] Product %d is OUT OF STOCK!\n", s_selectedProductIndex);
-                displayEmpty();
+                displayEmpty(s_selectedProductIndex, prodName);
                 s_stateTimer = now;
                 s_state = STATE_OUT_OF_STOCK;
                 break;
@@ -204,15 +203,15 @@ void updateVendingMachine() {
 
             if (s_credits < requiredCredits) {
                 Serial.printf("[Vending] Insufficient credits! Need %d, have %d\n", requiredCredits, s_credits);
-                displayNoCredit();
+                displayNoCredit(requiredCredits, s_credits);
                 s_stateTimer = now;
                 s_state = STATE_INSUFFICIENT_CREDIT;
                 break;
             }
 
             // Start Dispensing
-            Serial.printf("[Vending] Dispensing Product %d...\n", s_selectedProductIndex);
-            displaySale();
+            Serial.printf("[Vending] Dispensing Product %d (%s)...\n", s_selectedProductIndex, prodName.c_str());
+            displaySale(s_selectedProductIndex, prodName);
             setServoDuty(s_selectedProductIndex, SERVO_DUTY_PUSH);
             s_stateTimer = now;
             s_state = STATE_DISPENSING;
@@ -234,13 +233,13 @@ void updateVendingMachine() {
                     s_credits--;
                 }
 
-                displayDone();
+                displayDone(s_credits);
                 s_stateTimer = now;
                 s_state = STATE_SUCCESS;
             } else if (now - s_stateTimer >= DISPENSE_TIMEOUT_MS) {
                 stopAllServos();
                 Serial.printf("[Vending] ERROR: Dispense timeout for Product %d!\n", s_selectedProductIndex);
-                displayError();
+                displayError(s_selectedProductIndex);
                 s_stateTimer = now;
                 s_state = STATE_FAILED;
             }
@@ -251,7 +250,8 @@ void updateVendingMachine() {
         case STATE_FAILED:
         case STATE_INSUFFICIENT_CREDIT:
         case STATE_OUT_OF_STOCK:
-            if (now - s_stateTimer >= 2000) {
+            // Display status message for 2.5 seconds, then return to waiting/idle
+            if (now - s_stateTimer >= 2500) {
                 displayCredits(s_credits);
                 s_state = (s_credits > 0) ? STATE_WAITING_SELECTION : STATE_IDLE;
                 s_selectedProductIndex = -1;

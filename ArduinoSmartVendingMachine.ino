@@ -3,7 +3,7 @@
 //  Compatible with Arduino IDE & PlatformIO
 //
 //  Hardware: Dual Bottle Sensors + 4x Push Buttons + 4x Servos
-//            + 4x IR Drop Sensors + 7-Segment Display (TM1637)
+//            + 4x IR Drop Sensors + 20x4 I2C LCD (PCF8574)
 //            + Dynamic Web-Configurable GPIO Pins!
 //  Web App: Standalone WiFi Hotspot + Dashboard + Stock CRUD
 // ============================================================

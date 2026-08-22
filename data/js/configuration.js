@@ -1,5 +1,6 @@
 ﻿// ============================================================
 //  configuration.js -- Account & GPIO Pin Management
+//  Updated for 20x4 I2C LCD (SDA & SCL)
 // ============================================================
 
 const DEFAULT_PINS = {
@@ -7,7 +8,7 @@ const DEFAULT_PINS = {
   btn1: 13, btn2: 14, btn3: 27, btn4: 26,
   ir1: 36, ir2: 39, ir3: 32, ir4: 33,
   servo1: 18, servo2: 19, servo3: 21, servo4: 25,
-  dispClk: 22, dispDio: 23
+  lcdSda: 23, lcdScl: 22
 };
 
 // ---- Account Settings ---------------------------------------
@@ -115,8 +116,8 @@ function getPinFormData() {
     servo2:  parseInt(document.getElementById('pinServo2').value),
     servo3:  parseInt(document.getElementById('pinServo3').value),
     servo4:  parseInt(document.getElementById('pinServo4').value),
-    dispClk: parseInt(document.getElementById('pinDispClk').value),
-    dispDio: parseInt(document.getElementById('pinDispDio').value)
+    lcdSda:  parseInt(document.getElementById('pinLcdSda').value),
+    lcdScl:  parseInt(document.getElementById('pinLcdScl').value)
   };
 }
 
@@ -156,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const data = await r.json();
 
       if (data.success) {
-        showPinAlert(data.message || 'GPIO Pins updated and applied live!', 'success');
+        showPinAlert(data.message || 'GPIO Pins updated and 20x4 LCD reinitialized live!', 'success');
       } else {
         showPinAlert(data.message || 'Failed to update GPIO pins');
       }

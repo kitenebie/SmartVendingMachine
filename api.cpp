@@ -236,7 +236,7 @@ static void handleRemoteDispense(AsyncWebServerRequest* req, uint8_t* data,
 }
 
 // ============================================================
-//  GPIO PIN CONFIGURATION ENDPOINTS
+//  GPIO PIN CONFIGURATION ENDPOINTS (20x4 I2C LCD)
 // ============================================================
 
 static void handleGetPins(AsyncWebServerRequest* req) {
@@ -260,8 +260,8 @@ static void handleGetPins(AsyncWebServerRequest* req) {
     pins["servo2"]  = p.servo2;
     pins["servo3"]  = p.servo3;
     pins["servo4"]  = p.servo4;
-    pins["dispClk"] = p.dispClk;
-    pins["dispDio"] = p.dispDio;
+    pins["lcdSda"]  = p.lcdSda;
+    pins["lcdScl"]  = p.lcdScl;
 
     String out;
     serializeJson(doc, out);
@@ -295,20 +295,20 @@ static void handleUpdatePins(AsyncWebServerRequest* req, uint8_t* data,
     newPins.servo2  = doc["servo2"]  | current.servo2;
     newPins.servo3  = doc["servo3"]  | current.servo3;
     newPins.servo4  = doc["servo4"]  | current.servo4;
-    newPins.dispClk = doc["dispClk"] | current.dispClk;
-    newPins.dispDio = doc["dispDio"] | current.dispDio;
+    newPins.lcdSda  = doc["lcdSda"]  | (doc["dispDio"] | current.lcdSda);
+    newPins.lcdScl  = doc["lcdScl"]  | (doc["dispClk"] | current.lcdScl);
 
-    // Validate outputs (servos & display must NOT be input-only pins like 34-39)
+    // Validate outputs (servos & LCD I2C must NOT be input-only pins like 34-39)
     if (!isValidGpio(newPins.servo1, false) || !isValidGpio(newPins.servo2, false) ||
         !isValidGpio(newPins.servo3, false) || !isValidGpio(newPins.servo4, false) ||
-        !isValidGpio(newPins.dispClk, false) || !isValidGpio(newPins.dispDio, false)) {
-        sendError(req, 400, "Servos and Display must use output-capable GPIOs (do not use 34, 35, 36, 39)");
+        !isValidGpio(newPins.lcdSda, false) || !isValidGpio(newPins.lcdScl, false)) {
+        sendError(req, 400, "Servos and I2C LCD must use output-capable GPIOs (do not use 34, 35, 36, 39)");
         return;
     }
 
     if (savePinConfig(newPins)) {
         initVendingMachine(); // Re-apply pins immediately to hardware
-        sendOk(req, "GPIO pins updated and applied successfully!");
+        sendOk(req, "GPIO pins updated and 20x4 LCD reinitialized live!");
     } else {
         sendError(req, 500, "Failed to save pin configuration to storage");
     }

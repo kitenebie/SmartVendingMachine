@@ -96,7 +96,7 @@
         <div class="card-header" style="background:#f8fafc;">
           <div>
             <h3>Hardware GPIO Pin Assignments</h3>
-            <p class="text-muted text-sm" style="margin-top:2px;">Customize GPIO pins for sensors, buttons, servos & display</p>
+            <p class="text-muted text-sm" style="margin-top:2px;">Customize GPIO pins for sensors, buttons, servos & 20x4 I2C LCD</p>
           </div>
           <button type="button" class="btn btn-sm btn-outline" id="resetPinsBtn">Reset Defaults</button>
         </div>
@@ -174,15 +174,15 @@
                 <input type="number" id="pinServo4" min="0" max="33" required/>
               </div>
 
-              <!-- Display -->
-              <div class="pin-section-title">💡 7-Segment LED Display (TM1637)</div>
+              <!-- 20x4 I2C LCD Display -->
+              <div class="pin-section-title">🖥️ 20x4 I2C LCD Display (PCF8574 Backpack)</div>
               <div class="pin-item">
-                <label for="pinDispClk">Display CLK Pin</label>
-                <input type="number" id="pinDispClk" min="0" max="33" required/>
+                <label for="pinLcdSda">I2C Data (SDA Pin)</label>
+                <input type="number" id="pinLcdSda" min="0" max="33" required/>
               </div>
               <div class="pin-item">
-                <label for="pinDispDio">Display DIO Pin</label>
-                <input type="number" id="pinDispDio" min="0" max="33" required/>
+                <label for="pinLcdScl">I2C Clock (SCL Pin)</label>
+                <input type="number" id="pinLcdScl" min="0" max="33" required/>
               </div>
             </div>
 
@@ -267,7 +267,8 @@
           <p class="text-muted text-sm">
             <strong>Notes:</strong><br>
             • Pin updates are saved immediately to non-volatile flash storage (`/pins.json`) and activated live on hardware.<br>
-            • Do NOT assign input-only pins (GPIO 34, 35, 36, 39) to Servos or Display outputs.<br>
+            • The 20x4 LCD connects via 4 wires: GND, VCC (5V), SDA (Data), and SCL (Clock).<br>
+            • Do NOT assign input-only pins (GPIO 34, 35, 36, 39) to Servos or I2C LCD pins.<br>
             • After saving your new credentials, you will be redirected to log back in.
           </p>
         </div>
