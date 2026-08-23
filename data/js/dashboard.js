@@ -2,12 +2,12 @@
 //  dashboard.js -- Dashboard statistics and product summary
 // ============================================================
 
-/** Format a number as Philippine Peso currency. */
-function formatPeso(value) {
-  return '\u20B1' + Number(value).toLocaleString('en-PH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+/** Format a number as plastic bottle pieces. */
+function formatBottles(value) {
+  return Number(value).toLocaleString('en-PH', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }) + ' pcs';
 }
 
 function formatNumber(n) {
@@ -27,7 +27,7 @@ async function loadDashboard() {
     const s = data.summary;
     document.getElementById('statProducts').textContent = formatNumber(s.totalProducts);
     document.getElementById('statStocks').textContent   = formatNumber(s.totalStocks);
-    document.getElementById('statValue').textContent    = formatPeso(s.totalValue);
+    document.getElementById('statValue').textContent    = formatBottles(s.totalValue);
     document.getElementById('statLow').textContent      = formatNumber(s.lowStock);
 
     // Show low stock warning
@@ -42,16 +42,16 @@ async function loadDashboard() {
       return;
     }
 
-    // Sort by total value descending
-    const sorted = [...data.products].sort((a, b) => b.totalValue - a.totalValue);
+    // Sort by stocks descending
+    const sorted = [...data.products].sort((a, b) => b.stocks - a.stocks);
     tbody.innerHTML = sorted.map(p => `
       <tr>
         <td>${escapeHtml(p.name)}
           ${p.stocks <= 10 ? '<span class="badge-low">Low</span>' : ''}
         </td>
         <td class="text-right">${formatNumber(p.stocks)}</td>
-        <td class="text-right">${formatPeso(p.price)}</td>
-        <td class="text-right">${formatPeso(p.totalValue)}</td>
+        <td class="text-right">${formatBottles(p.price)}</td>
+        <td class="text-right">${formatBottles(p.totalValue)}</td>
       </tr>
     `).join('');
   } catch (err) {
@@ -76,4 +76,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (usernameEl) usernameEl.textContent = username;
 
   loadDashboard();
+
+  // Sidebar toggle (mobile)
+  const hamburger = document.getElementById('hamburger');
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebarOverlay');
+  const sideClose = document.getElementById('sidebarClose');
+
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+  });
+  sideClose.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    clearToken();
+    window.location.href = '/login.html';
+  });
 });

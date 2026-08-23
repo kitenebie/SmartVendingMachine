@@ -1,5 +1,5 @@
 ﻿// ============================================================
-//  products.js -- Full product CRUD management
+//  products.js -- Full product CRUD management (no price)
 // ============================================================
 
 let allProducts = [];
@@ -14,12 +14,6 @@ function escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
-}
-
-function formatPeso(v) {
-  return '\u20B1' + Number(v).toLocaleString('en-PH', {
-    minimumFractionDigits: 2, maximumFractionDigits: 2
-  });
 }
 
 function formatNum(n) { return Number(n).toLocaleString('en-PH'); }
@@ -40,7 +34,7 @@ function showToast(msg, type = 'success') {
 function renderTable(products) {
   const tbody = document.getElementById('productBody');
   if (!products || products.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:32px">No products found. Click "+ Add Product" to get started.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:32px">No products found. Click "+ Add Product" to get started.</td></tr>';
     return;
   }
   tbody.innerHTML = products.map((p, i) => `
@@ -51,8 +45,7 @@ function renderTable(products) {
         ${p.stocks <= 10 ? '<span class="badge-low">Low</span>' : ''}
       </td>
       <td class="text-right">${formatNum(p.stocks)}</td>
-      <td class="text-right">${formatPeso(p.price)}</td>
-      <td class="text-right">${formatPeso(p.totalValue)}</td>
+      <td class="text-right">${formatNum(p.price)} pcs</td>
       <td class="text-center">
         <div class="action-btns">
           <button class="btn-icon btn-icon-edit" onclick="openEditModal(${p.id})" title="Edit">
@@ -170,8 +163,8 @@ function validateProductForm() {
     document.getElementById('stocksErr').textContent = 'Stocks must be a non-negative integer';
     valid = false;
   }
-  if (price === '' || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
-    document.getElementById('priceErr').textContent = 'Price must be a non-negative number';
+  if (price === '' || isNaN(parseInt(price)) || parseInt(price) < 0) {
+    document.getElementById('priceErr').textContent = 'Required bottles must be a non-negative integer';
     valid = false;
   }
   return valid;
@@ -189,7 +182,7 @@ async function saveProduct() {
   const payload = {
     name:   document.getElementById('productName').value.trim(),
     stocks: parseInt(document.getElementById('productStocks').value),
-    price:  parseFloat(parseFloat(document.getElementById('productPrice').value).toFixed(2))
+    price:  parseInt(document.getElementById('productPrice').value)
   };
 
   try {
@@ -280,9 +273,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Close modals on backdrop click
   document.getElementById('productModal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('productModal')) closeModal();
+    if (e.target === e.currentTarget) closeModal();
   });
   document.getElementById('deleteModal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('deleteModal')) closeDeleteModal();
+    if (e.target === e.currentTarget) closeDeleteModal();
+  });
+
+  // Sidebar toggle (mobile)
+  const hamburger = document.getElementById('hamburger');
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebarOverlay');
+  const sideClose = document.getElementById('sidebarClose');
+
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+  });
+  sideClose.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    clearToken();
+    window.location.href = '/login.html';
   });
 });

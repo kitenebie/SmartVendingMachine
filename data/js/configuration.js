@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  configuration.js -- Account & GPIO Pin Management
 //  Updated for 20x4 I2C LCD (SDA & SCL)
 // ============================================================
@@ -16,7 +16,7 @@ const DEFAULT_PINS = {
 async function loadConfig() {
   try {
     const r = await fetch('/api/configuration', { headers: authHeaders() });
-    if (r.status === 401) { clearToken(); window.location.href = '/data/login.html'; return; }
+    if (r.status === 401) { clearToken(); window.location.href = '/login.html'; return; }
     const data = await r.json();
     if (data.success) {
       document.getElementById('currentUsername').value = data.username || '';
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (data.success) {
         showConfigAlert('Credentials updated! Redirecting to login...', 'success');
         clearToken();
-        setTimeout(() => { window.location.href = '/data/login.html'; }, 2000);
+        setTimeout(() => { window.location.href = '/login.html'; }, 2000);
       } else {
         showConfigAlert(data.message || 'Update failed');
         saveBtn.disabled = false;
