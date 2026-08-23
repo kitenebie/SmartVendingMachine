@@ -1,4 +1,4 @@
-# Paano Gumagana ang Vending Machine: Mula Web Server Hanggang Dispensing
+# Paano Gumagana ang Vending Machine: Mula Web Server Hanggang Dispensing 
 
 Ang ESP32 ang utak ng vending machine. Mayroon itong dalawang magkaugnay na tungkulin:
 
