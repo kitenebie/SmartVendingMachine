@@ -195,7 +195,7 @@ async function saveProduct() {
   try {
     let r;
     if (editingId) {
-      r = await fetch('/api/products/' + editingId, {
+      r = await fetch('/api/product?id=' + editingId, {
         method: 'PUT',
         headers: authHeaders(),
         body: JSON.stringify(payload)
@@ -235,7 +235,7 @@ async function confirmDelete() {
   btn.textContent = 'Deleting...';
 
   try {
-    const r = await fetch('/api/products/' + deletingId, {
+    const r = await fetch('/api/product?id=' + deletingId, {
       method: 'DELETE',
       headers: authHeaders()
     });

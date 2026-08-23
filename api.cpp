@@ -168,8 +168,9 @@ static void handleAddProduct(AsyncWebServerRequest* req, uint8_t* data,
 
 static void handleGetProduct(AsyncWebServerRequest* req) {
     if (!isAuthenticated(req)) { sendError(req, 401, "Unauthorized"); return; }
+    if (!req->hasParam("id")) { sendError(req, 400, "Missing id"); return; }
 
-    uint32_t id = (uint32_t)req->pathArg(0).toInt();
+    uint32_t id = (uint32_t)req->getParam("id")->value().toInt();
     Product* p  = getProductById(id);
     if (!p) { sendError(req, 404, "Product not found"); return; }
 
@@ -183,8 +184,9 @@ static void handleGetProduct(AsyncWebServerRequest* req) {
 static void handleUpdateProduct(AsyncWebServerRequest* req, uint8_t* data,
                                 size_t len, size_t, size_t) {
     if (!isAuthenticated(req)) { sendError(req, 401, "Unauthorized"); return; }
+    if (!req->hasParam("id")) { sendError(req, 400, "Missing id"); return; }
 
-    uint32_t id = (uint32_t)req->pathArg(0).toInt();
+    uint32_t id = (uint32_t)req->getParam("id")->value().toInt();
     String body = String((char*)data, len);
     JsonDocument doc;
     if (deserializeJson(doc, body) != DeserializationError::Ok) {
@@ -208,8 +210,9 @@ static void handleUpdateProduct(AsyncWebServerRequest* req, uint8_t* data,
 
 static void handleDeleteProduct(AsyncWebServerRequest* req) {
     if (!isAuthenticated(req)) { sendError(req, 401, "Unauthorized"); return; }
+    if (!req->hasParam("id")) { sendError(req, 400, "Missing id"); return; }
 
-    uint32_t id = (uint32_t)req->pathArg(0).toInt();
+    uint32_t id = (uint32_t)req->getParam("id")->value().toInt();
     if (!deleteProduct(id)) {
         sendError(req, 404, "Product not found"); return;
     }
@@ -377,9 +380,9 @@ void setupAPI(AsyncWebServer& server) {
     // Products & Vending
     server.on("/api/products", HTTP_GET,  handleGetProducts);
     server.on("/api/products", HTTP_POST, [](AsyncWebServerRequest* r){}, nullptr, handleAddProduct);
-    server.on("^/api/products/(\\d+)$", HTTP_GET,    handleGetProduct);
-    server.on("^/api/products/(\\d+)$", HTTP_DELETE, handleDeleteProduct);
-    server.on("^/api/products/(\\d+)$", HTTP_PUT,    [](AsyncWebServerRequest* r){}, nullptr, handleUpdateProduct);
+    server.on("/api/product", HTTP_GET,    handleGetProduct);
+    server.on("/api/product", HTTP_DELETE, handleDeleteProduct);
+    server.on("/api/product", HTTP_PUT,    [](AsyncWebServerRequest* r){}, nullptr, handleUpdateProduct);
 
     // Remote Dispense
     server.on("/api/vending/dispense", HTTP_POST, [](AsyncWebServerRequest* r){}, nullptr, handleRemoteDispense);
