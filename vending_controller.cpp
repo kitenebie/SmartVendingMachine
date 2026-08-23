@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  vending_controller.cpp -- Vending Controller State Machine
 //  Integrates 4-Product Dispensing with 20x4 I2C LCD Display
 // ============================================================

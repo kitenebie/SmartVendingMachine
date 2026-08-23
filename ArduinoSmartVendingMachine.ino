@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  ESP32 Smart Vending Machine & Inventory Management System
 //  Compatible with Arduino IDE & PlatformIO
 //

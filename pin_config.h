@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // ============================================================
 //  pin_config.h -- Dynamic GPIO Pin Configuration for ESP32
 //  Stores and loads customizable pin assignments from LittleFS

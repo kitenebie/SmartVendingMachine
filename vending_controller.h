@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // ============================================================
 //  vending_controller.h -- Vending Machine Controller & State Machine
 // ============================================================

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // ============================================================
 //  products.h — Product data model and CRUD declarations
 // ============================================================

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // ============================================================
 //  wifi_manager.h -- WiFi Access Point (Hotspot) mode
 //

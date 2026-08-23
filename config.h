@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // ============================================================
 //  config.h -- ESP32 Smart Vending Machine & Hotspot Settings
 //  Updated for 20x4 I2C LCD Display (PCF8574 Adapter)
