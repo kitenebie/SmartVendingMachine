@@ -1,5 +1,5 @@
 // ============================================================
-//  display_manager.cpp -- 20x4 I2C LCD Driver (PCF8574)
+//  display_manager.cpp -- 16x2 I2C LCD1602 Driver (PCF8574)
 //  Self-contained HD44780 4-bit over I2C driver using Wire.h
 // ============================================================
 #include "display_manager.h"
@@ -23,8 +23,8 @@ static uint8_t s_i2cAddr = LCD_I2C_ADDR;
 static uint8_t s_backlight = LCD_BL_BIT;
 static bool s_lcdFound = false;
 
-// Line start DDRAM addresses for 20x4 LCD
-static const uint8_t ROW_OFFSETS[] = { 0x00, 0x40, 0x14, 0x54 };
+// Line start DDRAM addresses for 16x2 LCD
+static const uint8_t ROW_OFFSETS[] = { 0x00, 0x40 };
 
 // ------------------------------------------------------------
 // Low-level PCF8574 I2C transmission
@@ -63,13 +63,13 @@ static void writeChar(uint8_t value) {
 }
 
 static void setCursor(uint8_t col, uint8_t row) {
-    if (row > 3) row = 3;
-    if (col > 19) col = 19;
+    if (row > 1) row = 1;
+    if (col > 15) col = 15;
     command(0x80 | (ROW_OFFSETS[row] + col));
 }
 
 static void printString(const String& str) {
-    for (size_t i = 0; i < str.length() && i < 20; i++) {
+    for (size_t i = 0; i < str.length() && i < 16; i++) {
         writeChar((uint8_t)str[i]);
     }
 }
@@ -77,8 +77,8 @@ static void printString(const String& str) {
 static void printPadded(uint8_t row, const String& text) {
     setCursor(0, row);
     String line = text;
-    while (line.length() < 20) line += " ";
-    if (line.length() > 20) line = line.substring(0, 20);
+    while (line.length() < 16) line += " ";
+    if (line.length() > 16) line = line.substring(0, 16);
     printString(line);
 }
 
@@ -89,7 +89,7 @@ void initDisplay() {
     int sda = getPinConfig().lcdSda;
     int scl = getPinConfig().lcdScl;
 
-    Serial.printf("[LCD] Initializing 20x4 LCD on SDA=%d, SCL=%d...\n", sda, scl);
+    Serial.printf("[LCD] Initializing 16x2 LCD on SDA=%d, SCL=%d...\n", sda, scl);
     Wire.begin(sda, scl, 100000);
 
     // Try the configured address first, then the other common PCF8574 address.
@@ -119,7 +119,7 @@ void initDisplay() {
     write4Bits(0x20); // Switch to 4-bit mode
     delay(2);
 
-    command(0x28); // 4-bit mode, 2/4 lines, 5x8 font
+    command(0x28); // 4-bit mode, 2 lines, 5x8 font
     delayMicroseconds(50);
     command(0x08); // Display off
     delayMicroseconds(50);
@@ -139,103 +139,60 @@ void clearDisplay() {
     delay(3);
 }
 
-void displayMessage(const String& l1, const String& l2, const String& l3, const String& l4) {
+void displayMessage(const String& l1, const String& l2) {
     if (!s_lcdFound) return;
     printPadded(0, l1);
     printPadded(1, l2);
-    printPadded(2, l3);
-    printPadded(3, l4);
 }
 
 void displayCredits(int credits) {
     if (!s_lcdFound) return;
-    char credStr[21];
-    snprintf(credStr, sizeof(credStr), " CREDITS: %02d BOTTLE", credits);
-
-    displayMessage(
-        "=== SMART VENDING ==",
-        String(credStr),
-        "[1]Water    [2]Juice",
-        "[3]Soda     [4]Snack"
-    );
+    char l1[17], l2[17];
+    snprintf(l1, sizeof(l1), "SMART VENDING");
+    snprintf(l2, sizeof(l2), "Credits: %02d BTL", credits);
+    displayMessage(String(l1), String(l2));
 }
 
 void displayProductSelected(int productNum, const String& name, float price, int credits) {
     if (!s_lcdFound) return;
-    char l1[21], l2[21], l3[21];
-    snprintf(l1, sizeof(l1), "SELECT: P%d", productNum);
-    snprintf(l2, sizeof(l2), "%-12s Prc:%d", name.substring(0, 12).c_str(), (int)price);
-    snprintf(l3, sizeof(l3), "Your Credits: %d", credits);
-
-    displayMessage(
-        String(l1),
-        String(l2),
-        String(l3),
-        "Checking stock..."
-    );
+    char l1[17], l2[17];
+    snprintf(l1, sizeof(l1), "P%d:%-9s $%d", productNum, name.substring(0, 9).c_str(), (int)price);
+    snprintf(l2, sizeof(l2), "Credits: %d", credits);
+    displayMessage(String(l1), String(l2));
 }
 
 void displaySale(int productNum, const String& name) {
     if (!s_lcdFound) return;
-    char l2[21];
-    snprintf(l2, sizeof(l2), "Item: P%d %-10s", productNum, name.substring(0, 10).c_str());
-
-    displayMessage(
-        "=== DISPENSING... ==",
-        String(l2),
-        "Please wait...",
-        "Watch delivery chute"
-    );
+    char l1[17], l2[17];
+    snprintf(l1, sizeof(l1), "DISPENSING...");
+    snprintf(l2, sizeof(l2), "P%d:%-10s", productNum, name.substring(0, 10).c_str());
+    displayMessage(String(l1), String(l2));
 }
 
 void displayDone(int remainingCredits) {
     if (!s_lcdFound) return;
-    char l4[21];
-    snprintf(l4, sizeof(l4), "Credits left: %d", remainingCredits);
-
-    displayMessage(
-        "=== SUCCESSFUL! === ",
-        "Please take item!",
-        "Thank you!",
-        String(l4)
-    );
+    char l2[17];
+    snprintf(l2, sizeof(l2), "Credits left:%d", remainingCredits);
+    displayMessage("SUCCESS!", String(l2));
 }
 
 void displayNoCredit(int requiredPrice, int currentCredits) {
     if (!s_lcdFound) return;
-    char l3[21];
-    snprintf(l3, sizeof(l3), "Need:%d | Have:%d", requiredPrice, currentCredits);
-
-    displayMessage(
-        "== NO ENOUGH CREDIT=",
-        "Insufficient balance",
-        String(l3),
-        "Insert more bottles!"
-    );
+    char l2[17];
+    snprintf(l2, sizeof(l2), "Need:%d Have:%d", requiredPrice, currentCredits);
+    displayMessage("LOW CREDITS!", String(l2));
 }
 
 void displayEmpty(int productNum, const String& name) {
     if (!s_lcdFound) return;
-    char l2[21];
-    snprintf(l2, sizeof(l2), "P%d %-15s", productNum, name.substring(0, 15).c_str());
-
-    displayMessage(
-        "=== OUT OF STOCK! ==",
-        String(l2),
-        "Item is currently",
-        "unavailable. Sorry!"
-    );
+    char l2[17];
+    snprintf(l2, sizeof(l2), "P%d:%-10s", productNum, name.substring(0, 10).c_str());
+    displayMessage("OUT OF STOCK!", String(l2));
 }
 
 void displayError(int productNum) {
     if (!s_lcdFound) return;
-    char l2[21];
-    snprintf(l2, sizeof(l2), "Product %d jammed", productNum);
-
-    displayMessage(
-        "== DISPENSE ERROR ==",
-        String(l2),
-        "Credit NOT deducted!",
-        "Please contact staff"
-    );
+    char l2[17];
+    snprintf(l2, sizeof(l2), "Product %d jam!", productNum);
+    displayMessage("ERROR!", String(l2));
 }

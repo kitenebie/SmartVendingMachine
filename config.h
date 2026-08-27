@@ -46,5 +46,5 @@
 #define PIN_LCD_SDA     23     // I2C Data (SDA) — board pin P23 / GPIO 23
 #define PIN_LCD_SCL     22     // I2C Clock (SCL) — board pin P22 / GPIO 22
 #define LCD_I2C_ADDR    0x27   // Common PCF8574 address: 0x27 or 0x3F
-#define LCD_COLS        20
-#define LCD_ROWS        4
+#define LCD_COLS        16
+#define LCD_ROWS        2

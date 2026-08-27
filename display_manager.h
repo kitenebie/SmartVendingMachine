@@ -1,10 +1,10 @@
 #pragma once
 // ============================================================
-//  display_manager.h -- 20x4 I2C LCD Display (PCF8574 Backpack)
+//  display_manager.h -- 16x2 I2C LCD1602 Display (PCF8574 Backpack)
 // ============================================================
 #include <Arduino.h>
 
-/** Initialize the 20x4 I2C LCD display using configured SDA/SCL pins. */
+/** Initialize the 16x2 I2C LCD display using configured SDA/SCL pins. */
 void initDisplay();
 
 /** Display default idle screen showing current credits and menu. */
@@ -28,8 +28,8 @@ void displayEmpty(int productNum, const String& name);
 /** Display dispensing timeout / motor error screen. */
 void displayError(int productNum);
 
-/** Clear all 4 lines of the LCD. */
+/** Clear the LCD. */
 void clearDisplay();
 
-/** Print custom 4-line text directly to LCD. */
-void displayMessage(const String& l1, const String& l2 = "", const String& l3 = "", const String& l4 = "");
+/** Print custom 2-line text directly to LCD. */
+void displayMessage(const String& l1, const String& l2 = "");
