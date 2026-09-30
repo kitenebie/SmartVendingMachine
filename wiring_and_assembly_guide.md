@@ -38,6 +38,9 @@ This guide provides an exhaustive, step-by-step mechanical and electrical manual
 
 | Component | Wire Function | Wire Color | ESP32 GPIO | Logic Level | Connection Target |
 |:---|:---|:---|:---|:---|:---|
+| **Bottle Sensor (Tube Front / Entry)** | VCC / Power | **RED** | — | 5V | External Power +5V |
+| | GND | **BLACK** | — | 0V | Common Ground (GND) |
+| | Signal (OUT) | **YELLOW/BLUE** | **GPIO 36 / VP** | 3.3V Max | ESP32 Pin VP/GPIO 36 (via divider if 5V) |
 | **Bottle Sensor A (Upper)** | VCC / Power | **RED** | — | 5V | External Power +5V |
 | | GND | **BLACK** | — | 0V | Common Ground (GND) |
 | | Signal (OUT) | **YELLOW/BLUE** | **GPIO 34** | 3.3V Max | ESP32 Pin 34 (via divider if 5V) |
@@ -72,12 +75,15 @@ This guide provides an exhaustive, step-by-step mechanical and electrical manual
 | **Servo 4 (Motor 4)** | VCC (Power) | **RED** | — | 5V (High Current)| External 5V Rail |
 | | GND | **BROWN/BLACK**| — | 0V | Common GND |
 | | Signal (PWM) | **ORANGE/WHITE**| **GPIO 25** | 3.3V PWM Out | ESP32 Pin 25 |
+| **Tube Door Servo (180°)** | VCC (Power) | **RED** | — | 5V (High Current) | External 5V Rail |
+| | GND | **BROWN/BLACK** | — | 0V | Common GND |
+| | Signal (PWM) | **ORANGE/WHITE** | **GPIO 4** | 3.3V PWM Out | ESP32 Pin 4 |
 | **20x4 I2C LCD Display** | VCC | **RED** | — | 5V | 5V Power (VIN / Ext 5V) |
 | | GND | **BLACK** | — | 0V | Common GND |
 | | SDA (Data) | **YELLOW** | **GPIO 23** | 3.3V I2C Data | ESP32 Pin 23 |
 | | SCL (Clock) | **GREEN** | **GPIO 22** | 3.3V I2C Clock| ESP32 Pin 22 |
 
-> **ESP32 38-pin silk-screen names:** `Pxx` means GPIO xx (halimbawa, `P23` = GPIO 23). Ang IR sensors ay gumagamit ng `P16`, `P17`, `P32`, at `P33`; hindi ginagamit ang `VP` o `VN`. Iwasan ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, at `CLK` dahil flash-memory pins ang mga ito.
+> **ESP32 38-pin silk-screen names:** `Pxx` means GPIO xx (halimbawa, `P23` = GPIO 23), at `VP` ay GPIO 36. Ginagamit ang VP para sa front/entry sensor lamang dahil input-only ito. Ang IR sensors ay gumagamit ng `P16`, `P17`, `P32`, at `P33`. Iwasan ang `SD0`, `SD1`, `SD2`, `SD3`, `CMD`, at `CLK` dahil flash-memory pins ang mga ito.
 
 ---
 
@@ -159,9 +165,10 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 2. Ikonekta ang lahat ng **GND (Power Supply GND + ESP32 GND + Sensors GND + Servos GND + LCD GND)** sa iisang Common Ground terminal.
 3. Ikonekta ang 1000µF capacitor sa pagitan ng +5V at GND rail.
 
-### Step 2: Bottle Entry Chute (Dual Proximity Sensors)
-1. I-mount ang Sensor A (Upper) at Sensor B (Lower) sa chute.
-2. Ikonekta ang Sensor A ➔ **GPIO 34**, Sensor B ➔ **GPIO 35**.
+### Step 2: Bottle Entry Chute (Entry Sensor, Dual Validation, and Door)
+1. I-mount ang front/entry sensor sa pinakaunahan ng tube, at ang Sensor A (Upper) at Sensor B (Lower) sa validation area.
+2. Ikonekta ang front/entry sensor ➔ **GPIO 36 (VP)**, Sensor A ➔ **GPIO 34**, at Sensor B ➔ **GPIO 35**.
+3. Ikonekta ang signal ng 180° tube-door servo ➔ **GPIO 4**. Ang VCC nito ay dapat sa hiwalay at sapat na 5 V supply; pag-isahin ang GND ng supply at ESP32.
 
 ### Step 3: Product Compartments & Dispenser Servos
 1. Ikabit ang 4 na spiral spring coils sa 4 na servos.
@@ -220,6 +227,6 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 ## 8. Testing & Calibration Procedures
 
 1. **Serial Monitor Check:** Buksan ang 115200 baud Serial Monitor. Siguraduhing lumabas ang `[LCD] Found I2C LCD at address 0x27` (o `0x3F`).
-2. **Bottle Entry Test:** Ipasok ang bote para ma-trigger ang Sensor A at B nang sabay. Dapat magbago ang Line 2 ng LCD sa `CREDITS: 01 BOTTLE`.
+2. **Bottle Entry Test:** Habang naka-detect ang front/entry sensor, walang dagdag na credit at nakasara ang door. Kapag clear na ito at sabay na naka-detect ang Sensor A at B nang 200 ms, bubukas ang door at magbabago ang Line 2 ng LCD sa `CREDITS: 01 BOTTLE`.
 3. **Dispense & Drop Test:** Pindutin ang Button 1. Magdi-display ang LCD ng `DISPENSING...` at iikot ang Servo 1. Kapag may object na na-detect ang kahit alin sa IR Sensor 1–4, titigil ang lahat ng servos at magdi-display ang LCD ng `SUCCESSFUL!`.
 4. **Safety Timeout Test:** Subukang mag-dispense kapag walang item. Pagkaraan ng 5 segundo, titigil ang servo at magdi-display ng `DISPENSE ERROR` nang walang bawas sa credits o stock.

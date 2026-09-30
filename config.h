@@ -7,7 +7,8 @@
 
 // ESP32 38-pin board silk-screen guide:
 // Pxx means GPIO xx (for example, P23 = GPIO 23).
-// This project uses normal P-labelled pins for every IR sensor; VP/VN are not used.
+// The board label includes "P", but use only the number in code (P23 -> 23).
+// This project uses normal P-labelled pins for every IR sensor; VP/GPIO 36 is reserved for the entry sensor.
 // Do not use SD0, SD1, SD2, SD3, CMD, or CLK: they are connected to the ESP32 flash.
 
 // ---- WiFi Access Point (Hotspot) Settings ------------------
@@ -17,6 +18,9 @@
 #define AP_MAX_CONN     4
 
 // ---- Bottle Detection Proximity Sensors -------------------
+// The entry sensor is at the front of the tube.  It prevents a credit from
+// being awarded while a bottle is still entering the tube.
+#define PIN_SENSOR_ENTRY 36     // Front/entry proximity sensor — GPIO 36 (input only)
 #define PIN_SENSOR_A    34     // Upper proximity sensor — board pin P34 / GPIO 34 (input only)
 #define PIN_SENSOR_B    35     // Lower proximity sensor — board pin P35 / GPIO 35 (input only)
 #define BOTTLE_VALIDATION_TIME_MS  200   // Both sensors must be active for this duration
@@ -41,6 +45,12 @@
 #define PIN_SERVO_3     21     // Servo motor 3 — board pin P21 / GPIO 21
 #define PIN_SERVO_4     25     // Servo motor 4 — board pin P25 / GPIO 25
 #define DISPENSE_TIMEOUT_MS  5000  // Maximum run time before auto-stopping stuck servo
+
+// ---- Bottle Tube Door Servo (180-degree servo) ------------
+#define PIN_DOOR_SERVO          4    // Door servo PWM signal — GPIO 4
+#define DOOR_CLOSED_ANGLE       0    // Adjust these two angles to match the door's mounting direction
+#define DOOR_OPEN_ANGLE         90
+#define DOOR_MIN_OPEN_TIME_MS   1000 // Keep the door open long enough for the validated bottle to pass
 
 // ---- 20x4 I2C LCD Display (PCF8574) -----------------------
 #define PIN_LCD_SDA     23     // I2C Data (SDA) — board pin P23 / GPIO 23

@@ -4,10 +4,10 @@
 // ============================================================
 
 const DEFAULT_PINS = {
-  sensorA: 34, sensorB: 35,
+  sensorEntry: 36, sensorA: 34, sensorB: 35,
   btn1: 13, btn2: 14, btn3: 27, btn4: 26,
   ir1: 16, ir2: 17, ir3: 32, ir4: 33,
-  servo1: 18, servo2: 19, servo3: 21, servo4: 25,
+  servo1: 18, servo2: 19, servo3: 21, servo4: 25, doorServo: 4,
   lcdSda: 23, lcdScl: 22
 };
 
@@ -102,6 +102,7 @@ function populatePinInputs(pins) {
 
 function getPinFormData() {
   return {
+    sensorEntry: parseInt(document.getElementById('pinSensorEntry').value),
     sensorA: parseInt(document.getElementById('pinSensorA').value),
     sensorB: parseInt(document.getElementById('pinSensorB').value),
     btn1:    parseInt(document.getElementById('pinBtn1').value),
@@ -116,6 +117,7 @@ function getPinFormData() {
     servo2:  parseInt(document.getElementById('pinServo2').value),
     servo3:  parseInt(document.getElementById('pinServo3').value),
     servo4:  parseInt(document.getElementById('pinServo4').value),
+    doorServo: parseInt(document.getElementById('pinDoorServo').value),
     lcdSda:  parseInt(document.getElementById('pinLcdSda').value),
     lcdScl:  parseInt(document.getElementById('pinLcdScl').value)
   };

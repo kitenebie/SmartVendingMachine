@@ -14,7 +14,9 @@ static int s_credits = 0;
 static int s_selectedProductIndex = -1; // 1, 2, 3, or 4
 static uint32_t s_stateTimer = 0;
 static uint32_t s_bottleDetectionStart = 0;
+static uint32_t s_doorOpenedAt = 0;
 static bool s_bottleLock = false;
+static bool s_doorOpen = false;
 
 // Button debounce tracking (4 buttons)
 static uint32_t s_lastBtn1Press = 0;
@@ -28,6 +30,23 @@ static const int SERVO_PWM_RES  = 16;     // 16-bit resolution (0-65535)
 
 static const uint32_t SERVO_DUTY_STOP = 4915; // ~1.5ms neutral pulse
 static const uint32_t SERVO_DUTY_PUSH = 6553; // ~2.0ms push pulse
+static const uint32_t SERVO_DUTY_MIN  = 3277; // ~1.0ms pulse (0 degrees)
+static const uint32_t SERVO_DUTY_MAX  = 6553; // ~2.0ms pulse (180 degrees)
+
+static uint32_t servoDutyForAngle(int angle) {
+    angle = constrain(angle, 0, 180);
+    return SERVO_DUTY_MIN + ((SERVO_DUTY_MAX - SERVO_DUTY_MIN) * angle) / 180;
+}
+
+static void setDoorOpen(bool open) {
+    if (s_doorOpen == open) return;
+
+    const PinConfig& p = getPinConfig();
+    ledcWrite(p.doorServo, servoDutyForAngle(open ? DOOR_OPEN_ANGLE : DOOR_CLOSED_ANGLE));
+    s_doorOpen = open;
+    if (open) s_doorOpenedAt = millis();
+    Serial.printf("[Vending] Bottle tube door %s.\n", open ? "opened" : "closed");
+}
 
 static void setServoDuty(int productIndex, uint32_t duty) {
     const PinConfig& p = getPinConfig();
@@ -50,6 +69,7 @@ void initVendingMachine() {
     const PinConfig& p = getPinConfig();
 
     // Proximity Sensors
+    pinMode(p.sensorEntry, INPUT);
     pinMode(p.sensorA, INPUT);
     pinMode(p.sensorB, INPUT);
 
@@ -70,7 +90,10 @@ void initVendingMachine() {
     ledcAttach(p.servo2, SERVO_PWM_FREQ, SERVO_PWM_RES);
     ledcAttach(p.servo3, SERVO_PWM_FREQ, SERVO_PWM_RES);
     ledcAttach(p.servo4, SERVO_PWM_FREQ, SERVO_PWM_RES);
+    ledcAttach(p.doorServo, SERVO_PWM_FREQ, SERVO_PWM_RES);
     stopAllServos();
+    s_doorOpen = true; // Force the initial command below even after a live pin reconfiguration.
+    setDoorOpen(false);
 
     // Initialize 20x4 I2C LCD Display
     initDisplay();
@@ -128,27 +151,37 @@ void updateVendingMachine() {
     const PinConfig& p = getPinConfig();
 
     // ---- 1. BOTTLE DETECTION LOGIC -------------------------
+    bool entryDetected = (digitalRead(p.sensorEntry) == HIGH);
     bool sA = (digitalRead(p.sensorA) == HIGH);
     bool sB = (digitalRead(p.sensorB) == HIGH);
 
-    if (sA && sB) {
-        if (!s_bottleLock) {
-            if (s_bottleDetectionStart == 0) {
-                s_bottleDetectionStart = now;
-            } else if (now - s_bottleDetectionStart >= BOTTLE_VALIDATION_TIME_MS) {
-                addCredit(1);
-                s_bottleLock = true;
-                s_bottleDetectionStart = 0;
-                if (s_state == STATE_IDLE) {
-                    s_state = STATE_WAITING_SELECTION;
-                }
+    // A bottle at the tube entrance must never award a credit.  It has to
+    // leave the entry sensor, then be confirmed by BOTH validation sensors.
+    if (!s_bottleLock && !entryDetected && sA && sB) {
+        if (s_bottleDetectionStart == 0) {
+            s_bottleDetectionStart = now;
+        } else if (now - s_bottleDetectionStart >= BOTTLE_VALIDATION_TIME_MS) {
+            // Valid bottle: release the door first, then award exactly one credit.
+            setDoorOpen(true);
+            addCredit(1);
+            s_bottleLock = true;
+            s_bottleDetectionStart = 0;
+            if (s_state == STATE_IDLE) {
+                s_state = STATE_WAITING_SELECTION;
             }
         }
-    } else {
-        if (!sA && !sB) {
-            s_bottleLock = false;
-            s_bottleDetectionStart = 0;
-        }
+    } else if (!s_bottleLock) {
+        // Entry occupied, or only one validation sensor active: no credit.
+        s_bottleDetectionStart = 0;
+    }
+
+    // Keep the door open while the accepted bottle clears the tube.  The
+    // minimum open period avoids closing on the bottle before it reaches the door.
+    if (s_bottleLock && !entryDetected && !sA && !sB &&
+        now - s_doorOpenedAt >= DOOR_MIN_OPEN_TIME_MS) {
+        setDoorOpen(false);
+        s_bottleLock = false;
+        s_bottleDetectionStart = 0;
     }
 
     // ---- 2. BUTTON INPUT PROCESSING (4 BUTTONS) ------------

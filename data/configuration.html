@@ -107,7 +107,11 @@
             <div class="pin-grid">
 
               <!-- Bottle Proximity -->
-              <div class="pin-section-title">🍼 Bottle Proximity Sensors (Dual Detection)</div>
+              <div class="pin-section-title">🍼 Bottle Proximity Sensors (Entry + Dual Validation)</div>
+              <div class="pin-item">
+                <label for="pinSensorEntry">Bottle Sensor (Tube Front / Entry)</label>
+                <input type="number" id="pinSensorEntry" min="0" max="39" required/>
+              </div>
               <div class="pin-item">
                 <label for="pinSensorA">Bottle Sensor A (Upper)</label>
                 <input type="number" id="pinSensorA" min="0" max="39" required/>
@@ -172,6 +176,10 @@
               <div class="pin-item">
                 <label for="pinServo4">Servo 4 (Product 4)</label>
                 <input type="number" id="pinServo4" min="0" max="33" required/>
+              </div>
+              <div class="pin-item">
+                <label for="pinDoorServo">Door Servo (End of Bottle Tube)</label>
+                <input type="number" id="pinDoorServo" min="0" max="33" required/>
               </div>
 
               <!-- 20x4 I2C LCD Display -->

@@ -2,6 +2,7 @@
 //  pin_config.cpp -- Dynamic GPIO Pin Configuration implementation
 // ============================================================
 #include "pin_config.h"
+#include "config.h"
 #include "storage.h"
 #include <ArduinoJson.h>
 
@@ -9,6 +10,7 @@ static const char* PINS_FILE = "/pins.json";
 
 // Default hardware pins
 static PinConfig s_pins = {
+    PIN_SENSOR_ENTRY, // sensorEntry (front of bottle tube; input only)
     34, // sensorA
     35, // sensorB
     13, // btn1
@@ -23,6 +25,7 @@ static PinConfig s_pins = {
     19, // servo2
     21, // servo3
     25, // servo4
+    PIN_DOOR_SERVO, // doorServo
     23, // lcdSda
     22  // lcdScl
 };
@@ -55,6 +58,7 @@ void initPinConfig() {
         return;
     }
 
+    s_pins.sensorEntry = doc["sensorEntry"] | s_pins.sensorEntry;
     s_pins.sensorA = doc["sensorA"] | s_pins.sensorA;
     s_pins.sensorB = doc["sensorB"] | s_pins.sensorB;
     s_pins.btn1    = doc["btn1"]    | s_pins.btn1;
@@ -69,6 +73,7 @@ void initPinConfig() {
     s_pins.servo2  = doc["servo2"]  | s_pins.servo2;
     s_pins.servo3  = doc["servo3"]  | s_pins.servo3;
     s_pins.servo4  = doc["servo4"]  | s_pins.servo4;
+    s_pins.doorServo = doc["doorServo"] | s_pins.doorServo;
     s_pins.lcdSda  = doc["lcdSda"]  | (doc["dispDio"] | s_pins.lcdSda);
     s_pins.lcdScl  = doc["lcdScl"]  | (doc["dispClk"] | s_pins.lcdScl);
 
@@ -93,6 +98,7 @@ bool savePinConfig(const PinConfig& cfg) {
     s_pins = cfg;
 
     JsonDocument doc;
+    doc["sensorEntry"] = s_pins.sensorEntry;
     doc["sensorA"] = s_pins.sensorA;
     doc["sensorB"] = s_pins.sensorB;
     doc["btn1"]    = s_pins.btn1;
@@ -107,6 +113,7 @@ bool savePinConfig(const PinConfig& cfg) {
     doc["servo2"]  = s_pins.servo2;
     doc["servo3"]  = s_pins.servo3;
     doc["servo4"]  = s_pins.servo4;
+    doc["doorServo"] = s_pins.doorServo;
     doc["lcdSda"]  = s_pins.lcdSda;
     doc["lcdScl"]  = s_pins.lcdScl;
 
@@ -120,6 +127,7 @@ bool savePinConfig(const PinConfig& cfg) {
 }
 
 void resetPinConfigToDefaults() {
-    PinConfig defaults = {34, 35, 13, 14, 27, 26, 16, 17, 32, 33, 18, 19, 21, 25, 23, 22};
+    PinConfig defaults = {PIN_SENSOR_ENTRY, 34, 35, 13, 14, 27, 26, 16, 17, 32, 33,
+                          18, 19, 21, 25, PIN_DOOR_SERVO, 23, 22};
     savePinConfig(defaults);
 }

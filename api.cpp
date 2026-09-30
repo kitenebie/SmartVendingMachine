@@ -249,6 +249,7 @@ static void handleGetPins(AsyncWebServerRequest* req) {
     JsonDocument doc;
     doc["success"] = true;
     JsonObject pins = doc["pins"].to<JsonObject>();
+    pins["sensorEntry"] = p.sensorEntry;
     pins["sensorA"] = p.sensorA;
     pins["sensorB"] = p.sensorB;
     pins["btn1"]    = p.btn1;
@@ -263,6 +264,7 @@ static void handleGetPins(AsyncWebServerRequest* req) {
     pins["servo2"]  = p.servo2;
     pins["servo3"]  = p.servo3;
     pins["servo4"]  = p.servo4;
+    pins["doorServo"] = p.doorServo;
     pins["lcdSda"]  = p.lcdSda;
     pins["lcdScl"]  = p.lcdScl;
 
@@ -284,6 +286,7 @@ static void handleUpdatePins(AsyncWebServerRequest* req, uint8_t* data,
     PinConfig current = getPinConfig();
     PinConfig newPins;
 
+    newPins.sensorEntry = doc["sensorEntry"] | current.sensorEntry;
     newPins.sensorA = doc["sensorA"] | current.sensorA;
     newPins.sensorB = doc["sensorB"] | current.sensorB;
     newPins.btn1    = doc["btn1"]    | current.btn1;
@@ -298,12 +301,14 @@ static void handleUpdatePins(AsyncWebServerRequest* req, uint8_t* data,
     newPins.servo2  = doc["servo2"]  | current.servo2;
     newPins.servo3  = doc["servo3"]  | current.servo3;
     newPins.servo4  = doc["servo4"]  | current.servo4;
+    newPins.doorServo = doc["doorServo"] | current.doorServo;
     newPins.lcdSda  = doc["lcdSda"]  | (doc["dispDio"] | current.lcdSda);
     newPins.lcdScl  = doc["lcdScl"]  | (doc["dispClk"] | current.lcdScl);
 
     // Validate outputs (servos & LCD I2C must NOT be input-only pins like 34-39)
     if (!isValidGpio(newPins.servo1, false) || !isValidGpio(newPins.servo2, false) ||
         !isValidGpio(newPins.servo3, false) || !isValidGpio(newPins.servo4, false) ||
+        !isValidGpio(newPins.doorServo, false) ||
         !isValidGpio(newPins.lcdSda, false) || !isValidGpio(newPins.lcdScl, false)) {
         sendError(req, 400, "Servos and I2C LCD must use output-capable GPIOs (do not use 34, 35, 36, 39)");
         return;

@@ -6,6 +6,7 @@
 #include <Arduino.h>
 
 struct PinConfig {
+    int sensorEntry; // Front bottle-entry sensor; must be clear before credit validation
     int sensorA;     // Bottle Sensor A
     int sensorB;     // Bottle Sensor B
     int btn1;        // Button Product 1
@@ -20,6 +21,7 @@ struct PinConfig {
     int servo2;      // Servo Motor 2
     int servo3;      // Servo Motor 3
     int servo4;      // Servo Motor 4
+    int doorServo;   // 180-degree servo that blocks/releases the end of the bottle tube
     int lcdSda;      // 20x4 LCD I2C SDA
     int lcdScl;      // 20x4 LCD I2C SCL
 };
