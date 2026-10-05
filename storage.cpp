@@ -13,6 +13,7 @@ bool initStorage() {
         }
     }
     Serial.println("[Storage] LittleFS mounted OK");
+    if (!LittleFS.exists("/data")) LittleFS.mkdir("/data");
     return true;
 }
 

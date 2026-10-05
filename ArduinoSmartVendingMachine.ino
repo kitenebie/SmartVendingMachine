@@ -37,6 +37,7 @@ static void printBanner() {
 void setup() {
     Serial.begin(115200);
     delay(500);
+    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
     printBanner();
 
     // 1. Mount LittleFS Filesystem
@@ -50,9 +51,9 @@ void setup() {
     Serial.println("[Init] Loading GPIO Pin Configuration...");
     initPinConfig();
 
-    // 3. Initialize default admin account in NVS
-    Serial.println("[Init] Checking administrator account...");
-    initDefaultCredentials();
+    // 3. Load user accounts from LittleFS
+    Serial.println("[Init] Loading user accounts...");
+    initUsers();
 
     // 4. Load product database from /products.json
     Serial.println("[Init] Loading product inventory database...");
@@ -86,7 +87,7 @@ void setup() {
     else
         Serial.println(" Hotspot Pass    : (OPEN NETWORK)");
     Serial.printf(" Web Dashboard   : http://%s\n", getLocalIP().c_str());
-    Serial.println(" Default Login   : admin / admin123");
+    Serial.println(" Default Login   : admin@local / admin123");
     Serial.println("========================================");
     Serial.println();
 }
@@ -95,6 +96,7 @@ void setup() {
 void loop() {
     // Non-blocking state machine updates (Bottle detection, buttons, servos, IR sensors)
     updateVendingMachine();
+    updateReverseVending();
 
     // Small delay to prevent task starvation
     delay(5);
