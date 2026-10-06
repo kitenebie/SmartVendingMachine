@@ -1,5 +1,5 @@
 #include "vending_controller.h"
-// Taglish Guide: Dito tumatakbo ang hardware state machine. updateVendingMachine()
+// Guide: Dito tumatakbo ang hardware state machine. updateVendingMachine()
 // ang nagbabasa ng bottle sensors at nagkokontrol ng door/dispense servos;
 // API naman ang tumatawag sa bottle-credit helpers kapag valid ang bote.
 #include "config.h"

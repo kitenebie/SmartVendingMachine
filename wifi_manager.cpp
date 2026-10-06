@@ -1,6 +1,6 @@
 // ============================================================
 //  wifi_manager.cpp -- ESP32 Access Point (Hotspot) mode
-// Taglish Guide: startAccessPoint() ang nagse-set ng ESP32 sa hotspot mode
+// Guide: startAccessPoint() ang nagse-set ng ESP32 sa hotspot mode
 // gamit ang SSID at network settings mula sa tumatawag. getLocalIP() ang
 // nagbibigay ng address na bubuksan para ma-access ang web dashboard.
 // ============================================================

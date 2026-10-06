@@ -1,5 +1,5 @@
 #include "products.h"
-// Taglish Guide: Ito ang product inventory sa memory at ang CRUD helpers nito.
+// Guide: Ito ang product inventory sa memory at ang CRUD helpers nito.
 // Sa boot, loadProducts() ang nagbabasa ng saved JSON (o legacy/default data);
 // bawat add, update at delete ay sine-save ulit sa LittleFS.
 #include "storage.h"

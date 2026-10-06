@@ -1,7 +1,7 @@
 // ============================================================
 //  display_manager.cpp -- 16x2 I2C LCD1602 Driver (PCF8574)
 //  Self-contained HD44780 4-bit over I2C driver using Wire.h
-// Taglish Guide: Kinakausap ng low-level helpers ang PCF8574 backpack para
+// Guide: Kinakausap ng low-level helpers ang PCF8574 backpack para
 // magpadala ng command o character sa LCD. Gamitin ang public display functions
 // sa ibaba para magpakita ng credits, status at vending messages.
 // ============================================================
