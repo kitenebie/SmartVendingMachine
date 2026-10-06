@@ -1,4 +1,7 @@
 #include "api.h"
+// Taglish Guide: Dito nakakabit ang web API routes para sa login, users,
+// products, credits, bottle collection at redemption. I-check muna ang session
+// o admin role bago magbasa o magbago ng data; setupAPI() ang nagrerehistro nito.
 #include "auth.h"
 #include "products.h"
 #include "vending_controller.h"

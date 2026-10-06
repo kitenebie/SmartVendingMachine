@@ -1,5 +1,8 @@
 // ============================================================
 //  pin_config.cpp -- Dynamic GPIO Pin Configuration implementation
+// Taglish Guide: Naglo-load at nagse-save ito ng GPIO assignments sa /pins.json.
+// Kapag wala o hindi mabasa ang config, factory defaults ang ginagamit; isValidGpio()
+// ang pang-check kung puwedeng gamitin ang pin sa napiling input/output role.
 // ============================================================
 #include "pin_config.h"
 #include "config.h"

@@ -6,6 +6,9 @@
 //            + 4x IR Drop Sensors + 20x4 I2C LCD (PCF8574)
 //            + Dynamic Web-Configurable GPIO Pins!
 //  Web App: Standalone WiFi Hotspot + Dashboard + Stock CRUD
+// Taglish Guide: Main entry point ito ng buong machine. Sa setup(), ini-initialize
+// ang storage, users, products at hardware bago buksan ang WiFi hotspot at API;
+// sa loop(), tuloy-tuloy na ina-update ang vending at bottle collection.
 // ============================================================
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>

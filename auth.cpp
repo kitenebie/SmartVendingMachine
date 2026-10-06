@@ -1,4 +1,7 @@
 #include "auth.h"
+// Taglish Guide: Namamahala ito sa user accounts, password verification,
+// credits, dispense log at session tokens. Users at log ay naka-save sa LittleFS;
+// ang active sessions ay nasa RAM kaya nawawala kapag nag-restart ang ESP32.
 #include "storage.h"
 #include <ArduinoJson.h>
 #include <mbedtls/sha256.h>

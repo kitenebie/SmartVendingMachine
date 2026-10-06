@@ -1,5 +1,8 @@
 // ============================================================
 //  storage.cpp — LittleFS helper implementation
+// Taglish Guide: Iisang lugar ito para i-mount ang LittleFS at magbasa,
+// magsulat, magtanggal o mag-check ng files. Boolean ang balik ng write/delete
+// operations para malaman ng tumatawag kung nagtagumpay.
 // ============================================================
 #include "storage.h"
 #include <LittleFS.h>
