@@ -27,7 +27,7 @@ static String nowIso() {
 }
 static String passwordHash(const String& password, const String& salt) {
     uint8_t digest[32]; String input = salt + ":" + password; mbedtls_sha256_context context; mbedtls_sha256_init(&context);
-    mbedtls_sha256_starts_ret(&context, 0); mbedtls_sha256_update_ret(&context, reinterpret_cast<const unsigned char*>(input.c_str()), input.length()); mbedtls_sha256_finish_ret(&context, digest); mbedtls_sha256_free(&context);
+    mbedtls_sha256_starts(&context, 0); mbedtls_sha256_update(&context, reinterpret_cast<const unsigned char*>(input.c_str()), input.length()); mbedtls_sha256_finish(&context, digest); mbedtls_sha256_free(&context);
     String out; out.reserve(64); for (uint8_t byte : digest) { char hex[3]; snprintf(hex, sizeof(hex), "%02x", byte); out += hex; } return out;
 }
 static bool sameConstantTime(const String& a, const String& b) {
