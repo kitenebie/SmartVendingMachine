@@ -13,7 +13,6 @@
 
 // ---- WiFi Access Point (Hotspot) Settings ------------------
 #define AP_SSID         "ESP32-Inventory"
-#define AP_PASSWORD     "inventory123"    // Min. 8 characters (or "" for open network)
 #define AP_CHANNEL      1
 #define AP_MAX_CONN     4
 
@@ -25,6 +24,7 @@
 #define PIN_SENSOR_B    35     // Lower proximity sensor — board pin P35 / GPIO 35 (input only)
 #define BOTTLE_VALIDATION_TIME_MS  200   // Both sensors must be active for this duration
 #define BOTTLE_DEBOUNCE_MS         150
+#define BOTTLE_SENSOR_ACTIVE_LEVEL LOW  // Change after measuring the installed sensors
 
 // ---- Product Selection Buttons (4 Buttons) -----------------
 #define PIN_BTN_1       13     // Product 1 button — board pin P13 / GPIO 13 (internal pull-up)
@@ -45,6 +45,9 @@
 #define PIN_SERVO_3     21     // Servo motor 3 — board pin P21 / GPIO 21
 #define PIN_SERVO_4     25     // Servo motor 4 — board pin P25 / GPIO 25
 #define DISPENSE_TIMEOUT_MS  5000  // Maximum run time before auto-stopping stuck servo
+#define IR_ACTIVE_LEVEL      LOW
+#define SERVO_STOP_DUTY      4915  // 1.5 ms at 50 Hz; calibrate for your continuous-rotation servos
+#define SERVO_PUSH_DUTY      6553  // 2.0 ms at 50 Hz; calibrate for one item
 
 // ---- Bottle Tube Door Servo (180-degree servo) ------------
 #define PIN_DOOR_SERVO          4    // Door servo PWM signal — GPIO 4
@@ -56,5 +59,5 @@
 #define PIN_LCD_SDA     23     // I2C Data (SDA) — board pin P23 / GPIO 23
 #define PIN_LCD_SCL     22     // I2C Clock (SCL) — board pin P22 / GPIO 22
 #define LCD_I2C_ADDR    0x27   // Common PCF8574 address: 0x27 or 0x3F
-#define LCD_COLS        16
-#define LCD_ROWS        2
+#define LCD_COLS        20
+#define LCD_ROWS        4

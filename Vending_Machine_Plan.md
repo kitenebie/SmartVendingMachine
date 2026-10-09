@@ -1,3 +1,5 @@
+> **Historical design notes.** Several examples below are not implemented as written. See [README.md](README.md) and current source.
+
 # ESP32 Vending Machine Plan
 
 > [!IMPORTANT]
@@ -1515,3 +1517,4 @@ Implement:
 - [ ] Only one transaction runs at a time.
 - [ ] Servo power is properly isolated from ESP32 GPIO power.
 - [ ] All sensor signal voltages are safe for ESP32 GPIO.
+

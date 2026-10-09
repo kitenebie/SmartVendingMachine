@@ -1,3 +1,109 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>User portal</title><style>body{font:16px system-ui;max-width:760px;margin:auto;padding:20px;background:#f8fafc}section{background:white;padding:20px;margin:12px 0;border-radius:10px}button{padding:9px;margin:4px;background:#2563eb;color:white;border:0;border-radius:5px}.credit{font-size:42px;font-weight:bold}li{margin:10px 0}.modal{position:fixed;inset:0;background:#0008;color:#fff;display:none;place-items:center}.modal>div{background:#111827;padding:30px;border-radius:12px;text-align:center}</style>
-<h1>My recycling account</h1><button onclick="logout()">Log out</button><section><div>Credits</div><div class="credit" id="credits">—</div><button id="insert">Insert bottle</button></section><section><h2>Redeem</h2><ul id="products"></ul></section><section><h2>Change password</h2><form id="password"><input id="current" type="password" placeholder="Current password" required><input id="next" type="password" placeholder="New password" minlength="8" required><button>Change password</button></form></section><div class="modal" id="modal"><div><h2>Drop the bottle</h2><p><span id="seconds">60</span>s remaining</p><button id="done">Done</button></div></div>
-<script src="/js/auth.js"></script><script>let timer;const $=id=>document.getElementById(id),refresh=async()=>{const d=await api('/api/me');$('credits').textContent=d.user.credits;const p=await api('/api/products');$('products').innerHTML=p.products.map(x=>`<li>${x.name} — ${x.credit_cost} credits (${x.stock} left) <button onclick="redeem('${x.id}')">Redeem</button></li>`).join('')};async function redeem(id){const qty=Number(prompt('Quantity',1));if(!qty)return;try{await api('/api/redeem',{method:'POST',body:JSON.stringify({product_id:id,qty})});refresh()}catch(e){alert(e.message)}}insert.onclick=async()=>{try{await api('/api/session/start',{method:'POST'});modal.style.display='grid';timer=setInterval(async()=>{const d=await api('/api/session/status');seconds.textContent=d.seconds_remaining;if(!d.locked||d.seconds_remaining===0)done.click()},1000)}catch(e){alert(e.message)}};done.onclick=async()=>{clearInterval(timer);modal.style.display='none';await api('/api/session/end',{method:'POST'}).catch(()=>{});refresh()};password.onsubmit=async e=>{e.preventDefault();try{await api('/api/user/password',{method:'POST',body:JSON.stringify({current_password:current.value,new_password:next.value})});alert('Password changed')}catch(x){alert(x.message)}};refresh().catch(()=>location.href='/login.html');</script>
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>User portal</title>
+<style>
+body{font:16px system-ui;max-width:760px;margin:auto;padding:20px;background:#f8fafc}
+section{background:white;padding:20px;margin:12px 0;border-radius:10px}
+button,input{padding:9px;margin:4px}button{background:#2563eb;color:white;border:0;border-radius:5px}
+button:disabled{opacity:.6}.credit{font-size:42px;font-weight:bold}li{margin:10px 0}
+.modal{position:fixed;inset:0;background:#0008;color:#fff;display:none;place-items:center}
+.modal>div{background:#111827;padding:30px;border-radius:12px;text-align:center}
+</style>
+<h1>My recycling account</h1>
+<button id="logout">Log out</button>
+<p id="message" role="status"></p>
+<section>
+  <div>Credits</div><div class="credit" id="credits">—</div>
+  <button id="insert">Insert bottle</button>
+</section>
+<section><h2>Redeem</h2><p>One item per request. You are charged only after a drop sensor confirms delivery.</p><ul id="products"></ul></section>
+<section>
+  <h2>Change password</h2>
+  <form id="passwordForm">
+    <input id="currentPassword" type="password" placeholder="Current password" autocomplete="current-password" required>
+    <input id="newPassword" type="password" placeholder="New password" autocomplete="new-password" minlength="8" required>
+    <button>Change password</button>
+  </form>
+</section>
+<div class="modal" id="modal"><div>
+  <h2>Drop the bottle</h2><p><span id="seconds">60</span>s remaining</p>
+  <p>You may also press a product button while this session is active.</p>
+  <button id="done">Done</button>
+</div></div>
+<script src="/js/auth.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let sessionTimer, purchasePending = false;
+function message(text) { $('message').textContent = text; }
+async function refresh() {
+  const [account, listing] = await Promise.all([api('/api/me'), api('/api/products')]);
+  $('credits').textContent = account.user.credits;
+  const rows = listing.products.map(product => {
+    const row = document.createElement('li');
+    row.append(document.createTextNode(product.name + ' — ' + product.credit_cost +
+      ' credits (' + product.stock + ' left, slot ' + product.slot + ') '));
+    const button = document.createElement('button');
+    button.textContent = 'Redeem';
+    button.disabled = !product.stock || purchasePending;
+    button.onclick = () => redeem(product.id);
+    row.append(button);
+    return row;
+  });
+  $('products').replaceChildren(...rows);
+}
+async function redeem(id) {
+  if (purchasePending) return;
+  purchasePending = true;
+  message('Dispensing. Waiting for delivery confirmation...');
+  try {
+    await api('/api/redeem', {method:'POST', body:JSON.stringify({product_id:id, qty:1})});
+    for (let attempt = 0; attempt < 60; ++attempt) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const status = await api('/api/session/status');
+      if (status.dispense === 'delivered' || status.dispense === 'timeout') {
+        message(status.dispense === 'delivered' ? 'Delivered. Credits and stock updated.' : 'No drop detected. You were not charged.');
+        break;
+      }
+      if (status.dispense === 'saving') message('Delivery detected. Saving the transaction...');
+    }
+  } catch (error) { message(error.message); }
+  purchasePending = false;
+  await refresh().catch(error => message(error.message));
+}
+$('logout').onclick = logout;
+$('insert').onclick = async () => {
+  try {
+    await api('/api/session/start', {method:'POST'});
+    $('modal').style.display = 'grid';
+    clearInterval(sessionTimer);
+    sessionTimer = setInterval(async () => {
+      try {
+        const status = await api('/api/session/status');
+        $('seconds').textContent = status.seconds_remaining;
+        $('credits').textContent = status.credits;
+        if (!status.locked) $('done').click();
+      } catch (error) { message(error.message); }
+    }, 1000);
+  } catch (error) { message(error.message); }
+};
+$('done').onclick = async () => {
+  clearInterval(sessionTimer);
+  $('modal').style.display = 'none';
+  try { await api('/api/session/end', {method:'POST'}); await refresh(); }
+  catch (error) { message(error.message); }
+};
+$('passwordForm').onsubmit = async event => {
+  event.preventDefault();
+  try {
+    await api('/api/user/password', {method:'POST', body:JSON.stringify({
+      current_password:$('currentPassword').value, new_password:$('newPassword').value
+    })});
+    event.target.reset(); message('Password changed.');
+  } catch (error) { message(error.message); }
+};
+if (!token()) location.href = '/login.html';
+else refresh().catch(() => location.href = '/login.html');
+</script>
+</html>

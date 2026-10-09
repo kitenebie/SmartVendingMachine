@@ -40,7 +40,6 @@ static void printBanner() {
 void setup() {
     Serial.begin(115200);
     delay(500);
-    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
     printBanner();
 
     // 1. Mount LittleFS Filesystem
@@ -52,32 +51,48 @@ void setup() {
 
     // 2. Load Dynamic GPIO Pin Configuration from /pins.json
     Serial.println("[Init] Loading GPIO Pin Configuration...");
-    initPinConfig();
+    if (!initPinConfig()) {
+        Serial.println("[FATAL] Invalid GPIO configuration. Halting.");
+        while (true) delay(1000);
+    }
 
     // 3. Load user accounts from LittleFS
     Serial.println("[Init] Loading user accounts...");
-    initUsers();
+    if (!initUsers()) {
+        Serial.println("[FATAL] User data could not be loaded or saved. Halting.");
+        while (true) delay(1000);
+    }
 
     // 4. Load product database from /products.json
     Serial.println("[Init] Loading product inventory database...");
-    if (!loadProducts()) {
-        Serial.println("[WARN] Product load failed, starting with default list");
+    if (!loadProducts() || !recoverRedemption()) {
+        Serial.println("[FATAL] Product data or pending redemption could not be recovered. Halting.");
+        while (true) delay(1000);
     }
     Serial.printf("[Init] Total products loaded: %d\n", (int)getProducts().size());
 
     // 5. Initialize Vending Machine Hardware (Dynamic Pins, Servos, Sensors, Display)
     Serial.println("[Init] Initializing Vending Machine hardware...");
-    initVendingMachine();
+    if (!initVendingMachine()) {
+        Serial.println("[FATAL] Hardware initialization failed. Halting.");
+        while (true) delay(1000);
+    }
 
     // 6. Start ESP32 WiFi Access Point (Hotspot)
     Serial.println("[Init] Starting WiFi Access Point...");
-    if (!startAccessPoint(AP_SSID, AP_PASSWORD, AP_CHANNEL, false, AP_MAX_CONN)) {
-        Serial.println("[WARN] Access point failed to start!");
+    String accessPointPassword;
+    if (!loadAccessPointPassword(accessPointPassword) ||
+        !startAccessPoint(AP_SSID, accessPointPassword.c_str(), AP_CHANNEL, false, AP_MAX_CONN)) {
+        Serial.println("[FATAL] Access point could not start. Halting.");
+        while (true) delay(1000);
     }
 
     // 7. Register API routes and start Async Web Server
     Serial.println("[Init] Starting Web Server...");
-    setupAPI(server);
+    if (!setupAPI(server)) {
+        Serial.println("[FATAL] Web API initialization failed. Halting.");
+        while (true) delay(1000);
+    }
     server.begin();
 
     Serial.println();
@@ -85,12 +100,9 @@ void setup() {
     Serial.println(" >>> VENDING SYSTEM READY & ONLINE! <<<");
     Serial.println("----------------------------------------");
     Serial.printf(" Hotspot SSID    : %s\n", AP_SSID);
-    if (strlen(AP_PASSWORD) > 0)
-        Serial.printf(" Hotspot Pass    : %s\n", AP_PASSWORD);
-    else
-        Serial.println(" Hotspot Pass    : (OPEN NETWORK)");
+    Serial.printf(" Hotspot Pass    : %s\n", accessPointPassword.c_str());
     Serial.printf(" Web Dashboard   : http://%s\n", getLocalIP().c_str());
-    Serial.println(" Default Login   : admin@local / admin123");
+    Serial.println(" Admin username  : admin@local");
     Serial.println("========================================");
     Serial.println();
 }

@@ -1,4 +1,6 @@
-﻿# 🛠️ Complete Wiring & Assembly Guide — ESP32 Smart Vending Machine (4 Products + 20x4 I2C LCD)
+> **Historical reference only.** `Plan.jpg` has incorrect labels and is not a wiring schematic. Use [README.md](README.md) and `config.h` for active wiring and power precautions.
+
+# 🛠️ Complete Wiring & Assembly Guide — ESP32 Smart Vending Machine (4 Products + 20x4 I2C LCD)
 
 This guide provides an exhaustive, step-by-step mechanical and electrical manual for assembling the **ESP32 38-Pin Smart Vending Machine & Inventory System** with a **20x4 I2C LCD Display (PCF8574 Backpack)** as illustrated in [`Plan.jpg`](Plan.jpg).
 
@@ -230,3 +232,4 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 2. **Bottle Entry Test:** Habang naka-detect ang front/entry sensor, walang dagdag na credit at nakasara ang door. Kapag clear na ito at sabay na naka-detect ang Sensor A at B nang 200 ms, bubukas ang door at magbabago ang Line 2 ng LCD sa `CREDITS: 01 BOTTLE`.
 3. **Dispense & Drop Test:** Pindutin ang Button 1. Magdi-display ang LCD ng `DISPENSING...` at iikot ang Servo 1. Kapag may object na na-detect ang kahit alin sa IR Sensor 1–4, titigil ang lahat ng servos at magdi-display ang LCD ng `SUCCESSFUL!`.
 4. **Safety Timeout Test:** Subukang mag-dispense kapag walang item. Pagkaraan ng 5 segundo, titigil ang servo at magdi-display ng `DISPENSE ERROR` nang walang bawas sa credits o stock.
+

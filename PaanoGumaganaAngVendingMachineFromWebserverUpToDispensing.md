@@ -1,3 +1,5 @@
+> **Lumang design notes ito.** Hindi na tugma ang ilang API at dispensing steps sa firmware. Tingnan ang [README.md](README.md) at source code.
+
 # Paano Gumagana ang Vending Machine: Mula Web Server Hanggang Dispensing 
 
 Ang ESP32 ang utak ng vending machine. Mayroon itong dalawang magkaugnay na tungkulin:
@@ -203,3 +205,4 @@ Boot ESP32
 - Kapag 5 V ang LCD backpack VCC, protektahan ang ESP32 gamit ang bidirectional I2C level shifter o 3.3 V pull-ups sa SDA/SCL. Hindi 5 V tolerant ang ESP32 GPIOs.
 - Gumamit ng hiwalay na 5 V supply para sa servos at ikonekta ang ground nito sa ESP32 ground.
 - I-check ang alignment at logic level ng IR sensors dahil dito nakasalalay ang confirmation bago bawasan ang stock at credit.
+

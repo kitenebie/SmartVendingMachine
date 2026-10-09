@@ -5,8 +5,7 @@
 #include <Arduino.h>
 
 /**
- * Mount LittleFS.  If mounting fails the partition is
- * formatted automatically and re-mounted.
+ * Mount LittleFS without formatting existing data on failure.
  * Returns true on success.
  */
 bool initStorage();
@@ -15,7 +14,7 @@ bool initStorage();
 String readFile(const char* path);
 
 /**
- * Write content to a file (overwrites).
+ * Write content to a temporary file and replace the target after a full write.
  * Returns true on success.
  */
 bool writeFile(const char* path, const String& content);

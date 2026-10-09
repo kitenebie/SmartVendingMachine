@@ -1,4 +1,5 @@
 #pragma once
 #include <ESPAsyncWebServer.h>
-void setupAPI(AsyncWebServer& server);
+bool setupAPI(AsyncWebServer& server);
+bool recoverRedemption();
 void updateReverseVending();

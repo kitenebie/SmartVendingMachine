@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <vector>
 
-struct Product { String id, name; int creditCost = 0, stock = 0; };
+struct Product { String id, name; int creditCost = 0, stock = 0; uint8_t slot = 0; };
 bool loadProducts();
 bool saveProducts();
 const std::vector<Product>& getProducts();

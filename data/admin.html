@@ -1,2 +1,122 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin</title><style>body{font:15px system-ui;max-width:1000px;margin:auto;padding:20px;background:#f8fafc}section{background:white;padding:18px;margin:12px 0;border-radius:10px}table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid #ddd}input,button{padding:8px;margin:3px}button{background:#2563eb;color:white;border:0;border-radius:4px}</style>
-<h1>Machine administration</h1><button onclick="logout()">Log out</button><section><h2>Users</h2><table><thead><tr><th>Email</th><th>Role</th><th>Credits</th><th>Override</th></tr></thead><tbody id="users"></tbody></table></section><section><h2>Products (maximum four actuator slots)</h2><form id="product"><input id="name" placeholder="Name" required><input id="cost" type="number" min="0" placeholder="Credits" required><input id="stock" type="number" min="0" placeholder="Stock" required><button>Add</button></form><table><tbody id="products"></tbody></table></section><section><h2>Dispense log</h2><pre id="log"></pre></section><script src="/js/auth.js"></script><script>const $=id=>document.getElementById(id),load=async()=>{const u=await api('/api/admin/users');$('users').innerHTML=u.users.map(x=>`<tr><td>${x.email}</td><td>${x.role}</td><td>${x.credits}</td><td><button onclick="credit('${x.id}')">Set</button></td></tr>`).join('');const p=await api('/api/products');$('products').innerHTML=p.products.map(x=>`<tr><td>${x.name}</td><td>${x.credit_cost}</td><td>${x.stock}</td><td><button onclick="removeProduct('${x.id}')">Delete</button></td></tr>`).join('');$('log').textContent=JSON.stringify(await api('/api/admin/log'),null,2)};async function credit(id){const n=prompt('New credit balance');if(n!==null)await api('/api/admin/credits',{method:'POST',body:JSON.stringify({user_id:id,credits:Number(n)})});load()}async function removeProduct(id){await api('/api/products?id='+encodeURIComponent(id),{method:'DELETE'});load()}product.onsubmit=async e=>{e.preventDefault();await api('/api/products',{method:'POST',body:JSON.stringify({name:name.value,credit_cost:Number(cost.value),stock:Number(stock.value)})});e.target.reset();load()};load().catch(()=>location.href='/login.html');</script>
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Machine administration</title>
+<style>
+body{font:15px system-ui;max-width:1000px;margin:auto;padding:20px;background:#f8fafc}
+section{background:white;padding:18px;margin:12px 0;border-radius:10px}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid #ddd}
+input,button{padding:8px;margin:3px}button{background:#2563eb;color:white;border:0;border-radius:4px}
+</style>
+<h1>Machine administration</h1><button id="logout">Log out</button>
+<p id="message" role="status"></p>
+<section>
+  <h2>Users</h2>
+  <table><thead><tr><th>Email</th><th>Role</th><th>Credits</th><th>Override</th></tr></thead><tbody id="users"></tbody></table>
+</section>
+<section>
+  <h2>Products (four fixed actuator slots)</h2>
+  <form id="productForm">
+    <input id="name" placeholder="Name" required>
+    <input id="cost" type="number" min="0" step="1" placeholder="Credits" required>
+    <input id="stock" type="number" min="0" step="1" placeholder="Stock" required>
+    <button>Add</button>
+  </form>
+  <table><thead><tr><th>Slot</th><th>Name</th><th>Credits</th><th>Stock</th><th>Actions</th></tr></thead><tbody id="products"></tbody></table>
+</section>
+<section><h2>Recent dispense log</h2><pre id="log"></pre></section>
+<section>
+  <h2>Change admin password</h2>
+  <form id="passwordForm">
+    <input id="currentPassword" type="password" placeholder="Current password" autocomplete="current-password" required>
+    <input id="newPassword" type="password" placeholder="New password (8+ chars)" autocomplete="new-password" minlength="8" required>
+    <button>Change password</button>
+  </form>
+</section>
+<script src="/js/auth.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+function message(text) { $('message').textContent = text; }
+function cell(row, value) {
+  const element = row.insertCell();
+  element.textContent = String(value);
+  return element;
+}
+function action(row, label, callback) {
+  const button = document.createElement('button');
+  button.textContent = label;
+  button.onclick = callback;
+  row.lastElementChild.append(button);
+}
+async function load() {
+  const [accounts, listing, history] = await Promise.all([
+    api('/api/admin/users'), api('/api/products'), api('/api/admin/log')
+  ]);
+  $('users').replaceChildren(...accounts.users.map(user => {
+    const row = document.createElement('tr');
+    cell(row, user.email); cell(row, user.role); cell(row, user.credits); cell(row, '');
+    action(row, 'Set credits', () => setCredits(user.id));
+    return row;
+  }));
+  $('products').replaceChildren(...listing.products.map(product => {
+    const row = document.createElement('tr');
+    cell(row, product.slot); cell(row, product.name);
+    cell(row, product.credit_cost); cell(row, product.stock); cell(row, '');
+    action(row, 'Edit', () => editProduct(product));
+    action(row, 'Delete', () => removeProduct(product.id));
+    return row;
+  }));
+  $('log').textContent = JSON.stringify(history, null, 2);
+}
+async function run(action) {
+  try { await action(); await load(); message('Saved.'); return true; }
+  catch (error) { message(error.message); return false; }
+}
+async function setCredits(id) {
+  const value = prompt('New credit balance');
+  if (value === null) return;
+  const credits = Number(value);
+  if (!Number.isSafeInteger(credits) || credits < 0) { message('Enter a non-negative integer.'); return; }
+  await run(() => api('/api/admin/credits', {method:'POST', body:JSON.stringify({user_id:id, credits})}));
+}
+async function editProduct(product) {
+  const name = prompt('Product name', product.name);
+  if (name === null) return;
+  const costValue = prompt('Credits required', product.credit_cost);
+  if (costValue === null) return;
+  const stockValue = prompt('Stock', product.stock);
+  if (stockValue === null) return;
+  const creditCost = Number(costValue), stock = Number(stockValue);
+  if (!name.trim() || !Number.isSafeInteger(creditCost) || creditCost < 0 ||
+      !Number.isSafeInteger(stock) || stock < 0) { message('Invalid product values.'); return; }
+  await run(() => api('/api/products', {method:'PUT', body:JSON.stringify({
+    id:product.id, name:name.trim(), credit_cost:creditCost, stock
+  })}));
+}
+async function removeProduct(id) {
+  if (!confirm('Delete this product? The other products keep their servo slots.')) return;
+  await run(() => api('/api/products?id=' + encodeURIComponent(id), {method:'DELETE'}));
+}
+$('productForm').onsubmit = async event => {
+  event.preventDefault();
+  const name = $('name').value.trim(), creditCost = Number($('cost').value), stock = Number($('stock').value);
+  if (!name || !Number.isSafeInteger(creditCost) || creditCost < 0 ||
+      !Number.isSafeInteger(stock) || stock < 0) { message('Invalid product values.'); return; }
+  if (await run(() => api('/api/products', {method:'POST', body:JSON.stringify({name, credit_cost:creditCost, stock})}))) event.target.reset();
+};
+$('logout').onclick = logout;
+$('passwordForm').onsubmit = async event => {
+  event.preventDefault();
+  await run(() => api('/api/user/password', {method:'POST', body:JSON.stringify({
+    current_password:$('currentPassword').value, new_password:$('newPassword').value
+  })}));
+  event.target.reset();
+};
+if (!token()) location.href = '/login.html';
+else api('/api/me').then(account => {
+  if (account.user.role !== 'admin') { location.href = '/portal'; return; }
+  load().catch(error => message(error.message));
+}).catch(() => location.href = '/login.html');
+</script>
+</html>

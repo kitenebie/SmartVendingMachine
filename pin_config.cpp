@@ -34,31 +34,47 @@ static PinConfig s_pins = {
 };
 
 bool isValidGpio(int pin, bool allowInputOnly) {
-    if (pin < 0 || pin > 39) return false;
-    // Reserved for SPI Flash: 6, 7, 8, 9, 10, 11
-    if (pin >= 6 && pin <= 11) return false;
-    // Input-only pins: 34, 35, 36, 39
-    if (!allowInputOnly && (pin == 34 || pin == 35 || pin == 36 || pin == 39)) {
-        return false;
+    const int usable[] = {4, 13, 14, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33, 34, 35, 36, 39};
+    bool found = false;
+    for (int value : usable) if (value == pin) found = true;
+    return found && (allowInputOnly || (pin != 34 && pin != 35 && pin != 36 && pin != 39));
+}
+
+static bool validConfig(const PinConfig& cfg) {
+    const int inputOnlyAllowed[] = {cfg.sensorEntry, cfg.sensorA, cfg.sensorB};
+    const int outputCapable[] = {cfg.btn1, cfg.btn2, cfg.btn3, cfg.btn4,
+        cfg.ir1, cfg.ir2, cfg.ir3, cfg.ir4, cfg.servo1, cfg.servo2,
+        cfg.servo3, cfg.servo4, cfg.doorServo, cfg.lcdSda, cfg.lcdScl};
+    int all[18];
+    int count = 0;
+    for (int pin : inputOnlyAllowed) {
+        if (!isValidGpio(pin, true)) return false;
+        all[count++] = pin;
     }
+    for (int pin : outputCapable) {
+        if (!isValidGpio(pin, false)) return false;
+        all[count++] = pin;
+    }
+    for (int i = 0; i < count; ++i)
+        for (int j = i + 1; j < count; ++j)
+            if (all[i] == all[j]) return false;
     return true;
 }
 
-void initPinConfig() {
+bool initPinConfig() {
     if (!fileExists(PINS_FILE)) {
         Serial.println("[PinConfig] No custom pins file found, using factory defaults.");
-        savePinConfig(s_pins);
-        return;
+        return true;
     }
 
     String json = readFile(PINS_FILE);
-    if (json.isEmpty()) return;
+    if (json.isEmpty()) return false;
 
     JsonDocument doc;
     DeserializationError err = deserializeJson(doc, json);
     if (err) {
         Serial.printf("[PinConfig] JSON error: %s, using defaults.\n", err.c_str());
-        return;
+        return false;
     }
 
     s_pins.sensorEntry = doc["sensorEntry"] | s_pins.sensorEntry;
@@ -85,12 +101,17 @@ void initPinConfig() {
     if (s_pins.ir1 == 36) { s_pins.ir1 = 16; migratedIrPins = true; }
     if (s_pins.ir2 == 39) { s_pins.ir2 = 17; migratedIrPins = true; }
 
+    if (!validConfig(s_pins)) {
+        Serial.println("[PinConfig] Invalid or duplicate GPIO assignment.");
+        return false;
+    }
     if (migratedIrPins) {
-        savePinConfig(s_pins);
+        if (!savePinConfig(s_pins)) return false;
         Serial.println("[PinConfig] Migrated IR 1/IR 2 from VP/VN to P16/P17.");
     }
 
     Serial.println("[PinConfig] Custom GPIO pins loaded successfully from LittleFS.");
+    return true;
 }
 
 const PinConfig& getPinConfig() {
@@ -98,31 +119,32 @@ const PinConfig& getPinConfig() {
 }
 
 bool savePinConfig(const PinConfig& cfg) {
-    s_pins = cfg;
+    if (!validConfig(cfg)) return false;
 
     JsonDocument doc;
-    doc["sensorEntry"] = s_pins.sensorEntry;
-    doc["sensorA"] = s_pins.sensorA;
-    doc["sensorB"] = s_pins.sensorB;
-    doc["btn1"]    = s_pins.btn1;
-    doc["btn2"]    = s_pins.btn2;
-    doc["btn3"]    = s_pins.btn3;
-    doc["btn4"]    = s_pins.btn4;
-    doc["ir1"]     = s_pins.ir1;
-    doc["ir2"]     = s_pins.ir2;
-    doc["ir3"]     = s_pins.ir3;
-    doc["ir4"]     = s_pins.ir4;
-    doc["servo1"]  = s_pins.servo1;
-    doc["servo2"]  = s_pins.servo2;
-    doc["servo3"]  = s_pins.servo3;
-    doc["servo4"]  = s_pins.servo4;
-    doc["doorServo"] = s_pins.doorServo;
-    doc["lcdSda"]  = s_pins.lcdSda;
-    doc["lcdScl"]  = s_pins.lcdScl;
+    doc["sensorEntry"] = cfg.sensorEntry;
+    doc["sensorA"] = cfg.sensorA;
+    doc["sensorB"] = cfg.sensorB;
+    doc["btn1"]    = cfg.btn1;
+    doc["btn2"]    = cfg.btn2;
+    doc["btn3"]    = cfg.btn3;
+    doc["btn4"]    = cfg.btn4;
+    doc["ir1"]     = cfg.ir1;
+    doc["ir2"]     = cfg.ir2;
+    doc["ir3"]     = cfg.ir3;
+    doc["ir4"]     = cfg.ir4;
+    doc["servo1"]  = cfg.servo1;
+    doc["servo2"]  = cfg.servo2;
+    doc["servo3"]  = cfg.servo3;
+    doc["servo4"]  = cfg.servo4;
+    doc["doorServo"] = cfg.doorServo;
+    doc["lcdSda"]  = cfg.lcdSda;
+    doc["lcdScl"]  = cfg.lcdScl;
 
     String out;
     serializeJson(doc, out);
     bool ok = writeFile(PINS_FILE, out);
+    if (ok) s_pins = cfg;
     if (ok) {
         Serial.println("[PinConfig] Saved updated pins to LittleFS.");
     }

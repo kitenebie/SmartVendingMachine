@@ -8,12 +8,9 @@
 #include <LittleFS.h>
 
 bool initStorage() {
-    if (!LittleFS.begin(false)) {                  // try mount without format
-        Serial.println("[Storage] Mounting failed, formatting…");
-        if (!LittleFS.begin(true)) {               // format + mount
-            Serial.println("[Storage] ERROR: Could not mount LittleFS!");
-            return false;
-        }
+    if (!LittleFS.begin(false)) {
+        Serial.println("[Storage] ERROR: Could not mount LittleFS; refusing to erase stored accounts.");
+        return false;
     }
     Serial.println("[Storage] LittleFS mounted OK");
     if (!LittleFS.exists("/data")) LittleFS.mkdir("/data");
@@ -34,13 +31,24 @@ String readFile(const char* path) {
 }
 
 bool writeFile(const char* path, const String& content) {
-    File f = LittleFS.open(path, "w");
+    String temporary = String(path) + ".tmp";
+    File f = LittleFS.open(temporary, "w");
     if (!f) {
         Serial.printf("[Storage] Failed to open %s for writing\n", path);
         return false;
     }
-    f.print(content);
+    size_t written = f.print(content);
     f.close();
+    if (written != content.length()) {
+        LittleFS.remove(temporary);
+        Serial.printf("[Storage] Incomplete write to %s\n", path);
+        return false;
+    }
+    if (!LittleFS.rename(temporary, path)) {
+        LittleFS.remove(temporary);
+        Serial.printf("[Storage] Failed to replace %s\n", path);
+        return false;
+    }
     return true;
 }
 

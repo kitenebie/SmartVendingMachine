@@ -1,4 +1,65 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reverse Vending</title>
-<style>body{font:16px system-ui;max-width:420px;margin:8vh auto;padding:24px;background:#eef2ff}main{background:white;padding:28px;border-radius:14px;box-shadow:0 5px 25px #0001}input,button{width:100%;padding:11px;margin:6px 0;box-sizing:border-box}button{background:#2563eb;color:white;border:0;border-radius:6px}a{color:#2563eb;cursor:pointer}.row{display:flex;gap:8px}.row>*{flex:1}#register{display:none}#message{color:#b91c1c}</style>
-<main><h1>Reverse Vending</h1><p id="message"></p><form id="login"><input id="email" type="email" placeholder="Email" required><input id="password" type="password" placeholder="Password" required><button>Log in</button></form><form id="register"><div class="row"><input id="firstname" placeholder="First name" required><input id="lastname" placeholder="Last name" required></div><input id="middlename" placeholder="Middle name"><input id="regEmail" type="email" placeholder="Email" required><input id="regPassword" type="password" placeholder="Password (8+ chars)" minlength="8" required><button>Create account</button></form><p><a id="toggle">Create an account</a></p></main>
-<script src="/js/auth.js"></script><script>const msg=document.querySelector('#message'), login=document.querySelector('#login'), reg=document.querySelector('#register');toggle.onclick=()=>{const show=reg.style.display==='none';reg.style.display=show?'block':'none';login.style.display=show?'none':'block';toggle.textContent=show?'Back to login':'Create an account';msg.textContent=''};login.onsubmit=async e=>{e.preventDefault();try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({email:email.value,password:password.value})});sessionStorage.setItem('rvm_token',d.token);location.href=d.user.role==='admin'?'/admin':'/portal'}catch(x){msg.textContent=x.message}};reg.onsubmit=async e=>{e.preventDefault();try{await api('/api/register',{method:'POST',body:JSON.stringify({firstname:firstname.value,middlename:middlename.value,lastname:lastname.value,email:regEmail.value,password:regPassword.value})});msg.style.color='green';msg.textContent='Created. You can log in now.';toggle.click()}catch(x){msg.textContent=x.message}};</script>
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reverse Vending</title>
+<style>
+body{font:16px system-ui;max-width:420px;margin:8vh auto;padding:24px;background:#eef2ff}
+main{background:white;padding:28px;border-radius:14px;box-shadow:0 5px 25px #0001}
+input,button{width:100%;padding:11px;margin:6px 0;box-sizing:border-box}
+button{background:#2563eb;color:white;border:0;border-radius:6px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+#register{display:none}#message{color:#b91c1c}
+</style>
+<main>
+  <h1>Reverse Vending</h1>
+  <p id="message" role="status"></p>
+  <form id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username" required>
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
+    <button>Log in</button>
+  </form>
+  <form id="register">
+    <div class="row">
+      <input id="firstname" placeholder="First name" required>
+      <input id="lastname" placeholder="Last name" required>
+    </div>
+    <input id="middlename" placeholder="Middle name">
+    <input id="regEmail" type="email" placeholder="Email" required>
+    <input id="regPassword" type="password" placeholder="Password (8+ chars)" minlength="8" required>
+    <button>Create account</button>
+  </form>
+  <p><button id="toggle" type="button">Create an account</button></p>
+</main>
+<script src="/js/auth.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+function showRegister(show) {
+  $('register').style.display = show ? 'block' : 'none';
+  $('login').style.display = show ? 'none' : 'block';
+  $('toggle').textContent = show ? 'Back to login' : 'Create an account';
+}
+showRegister(false);
+$('toggle').onclick = () => { showRegister($('register').style.display === 'none'); $('message').textContent = ''; };
+$('login').onsubmit = async event => {
+  event.preventDefault();
+  try {
+    const result = await api('/api/login', {method:'POST', body:JSON.stringify({email:$('email').value, password:$('password').value})});
+    sessionStorage.setItem('rvm_token', result.token);
+    location.href = result.user.role === 'admin' ? '/admin' : '/portal';
+  } catch (error) { $('message').textContent = error.message; }
+};
+$('register').onsubmit = async event => {
+  event.preventDefault();
+  try {
+    await api('/api/register', {method:'POST', body:JSON.stringify({
+      firstname:$('firstname').value, middlename:$('middlename').value,
+      lastname:$('lastname').value, email:$('regEmail').value, password:$('regPassword').value
+    })});
+    showRegister(false);
+    $('message').style.color = 'green';
+    $('message').textContent = 'Account created. Log in to continue.';
+  } catch (error) { $('message').textContent = error.message; }
+};
+</script>
+</html>

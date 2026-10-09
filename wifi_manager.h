@@ -7,6 +7,9 @@
 // ============================================================
 #include <Arduino.h>
 
+/** Read or create a unique per-device WiFi password in NVS. */
+bool loadAccessPointPassword(String& password);
+
 /**
  * Start the ESP32 as a WiFi Access Point (hotspot).
  *

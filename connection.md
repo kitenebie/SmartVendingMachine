@@ -1,4 +1,6 @@
-﻿# ESP32 Smart Vending Machine & Inventory System — Pin Connection & Setup Manual
+> **Historical reference only.** Use [README.md](README.md) and `config.h` for the active pin map and calibration. Do not wire from `Plan.jpg`.
+
+# ESP32 Smart Vending Machine & Inventory System — Pin Connection & Setup Manual
 
 This document provides the complete hardware wiring diagram, pin mapping, power isolation rules, and step-by-step procedures to build and connect the **ESP32 38-Pin Smart Vending Machine (4 Products Edition)** with a **20x4 I2C LCD Display (PCF8574 Module)** and integrated **Web Inventory Management**.
 
@@ -176,3 +178,4 @@ Mount each IR sensor across the dispensing chute of each product:
 | **No Credit (NOCR)** | `== NO ENOUGH CREDIT=` | `Insufficient balance` | `Need:3 \| Have:1` | `Insert more bottles!` |
 | **Out of Stock** | `=== OUT OF STOCK! ==` | `P1 Water          ` | `Item is currently` | `unavailable. Sorry!` |
 | **Dispense Error** | `== DISPENSE ERROR ==` | `Product 1 jammed   ` | `Credit NOT deducted!` | `Please contact staff` |
+

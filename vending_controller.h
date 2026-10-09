@@ -1,8 +1,11 @@
 #pragma once
 #include <Arduino.h>
 
-void initVendingMachine();
+enum class DispenseResult : uint8_t { None, Delivered, TimedOut };
+bool initVendingMachine();
 void updateVendingMachine();
 void setBottleCollectionEnabled(bool enabled);
 bool consumeValidatedBottle();
-bool pulseDispenseSlot(uint8_t slot, uint8_t count = 1);
+bool startDispense(uint8_t slot);
+DispenseResult takeDispenseResult();
+uint8_t takeButtonPress();

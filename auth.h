@@ -7,7 +7,7 @@ struct User {
     int credits = 0;
 };
 
-void initUsers();
+bool initUsers();
 bool registerUser(const String& firstname, const String& middlename, const String& lastname,
                   const String& email, const String& password, String& error);
 User* findUserByEmail(const String& email);
@@ -16,9 +16,8 @@ const std::vector<User>& getUsers();
 bool changeUserPassword(User& user, const String& currentPassword, const String& newPassword);
 bool verifyUserPassword(const User& user, const String& password);
 bool saveUsers();
-void expireInactiveCredits();
-void addUserCredits(User& user, int amount);
-void setUserCredits(User& user, int amount);
+bool addUserCredits(User& user, int amount);
+bool setUserCredits(User& user, int amount);
 
 String createSession(const String& userId);
 User* sessionUser(const String& token);

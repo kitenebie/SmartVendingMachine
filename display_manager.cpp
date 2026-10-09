@@ -1,5 +1,5 @@
 // ============================================================
-//  display_manager.cpp -- 16x2 I2C LCD1602 Driver (PCF8574)
+//  display_manager.cpp -- 20x4 I2C LCD Driver (PCF8574)
 //  Self-contained HD44780 4-bit over I2C driver using Wire.h
 // Guide: Kinakausap ng low-level helpers ang PCF8574 backpack para
 // magpadala ng command o character sa LCD. Gamitin ang public display functions
@@ -26,8 +26,7 @@ static uint8_t s_i2cAddr = LCD_I2C_ADDR;
 static uint8_t s_backlight = LCD_BL_BIT;
 static bool s_lcdFound = false;
 
-// Line start DDRAM addresses for 16x2 LCD
-static const uint8_t ROW_OFFSETS[] = { 0x00, 0x40 };
+static const uint8_t ROW_OFFSETS[] = { 0x00, 0x40, 0x14, 0x54 };
 
 // ------------------------------------------------------------
 // Low-level PCF8574 I2C transmission
@@ -66,13 +65,13 @@ static void writeChar(uint8_t value) {
 }
 
 static void setCursor(uint8_t col, uint8_t row) {
-    if (row > 1) row = 1;
-    if (col > 15) col = 15;
+    if (row >= LCD_ROWS) row = LCD_ROWS - 1;
+    if (col >= LCD_COLS) col = LCD_COLS - 1;
     command(0x80 | (ROW_OFFSETS[row] + col));
 }
 
 static void printString(const String& str) {
-    for (size_t i = 0; i < str.length() && i < 16; i++) {
+    for (size_t i = 0; i < str.length() && i < LCD_COLS; i++) {
         writeChar((uint8_t)str[i]);
     }
 }
@@ -80,8 +79,8 @@ static void printString(const String& str) {
 static void printPadded(uint8_t row, const String& text) {
     setCursor(0, row);
     String line = text;
-    while (line.length() < 16) line += " ";
-    if (line.length() > 16) line = line.substring(0, 16);
+    while (line.length() < LCD_COLS) line += " ";
+    if (line.length() > LCD_COLS) line = line.substring(0, LCD_COLS);
     printString(line);
 }
 
@@ -92,7 +91,7 @@ void initDisplay() {
     int sda = getPinConfig().lcdSda;
     int scl = getPinConfig().lcdScl;
 
-    Serial.printf("[LCD] Initializing 16x2 LCD on SDA=%d, SCL=%d...\n", sda, scl);
+    Serial.printf("[LCD] Initializing 20x4 LCD on SDA=%d, SCL=%d...\n", sda, scl);
     Wire.begin(sda, scl, 100000);
 
     // Try the configured address first, then the other common PCF8574 address.
@@ -142,15 +141,17 @@ void clearDisplay() {
     delay(3);
 }
 
-void displayMessage(const String& l1, const String& l2) {
+void displayMessage(const String& l1, const String& l2, const String& l3, const String& l4) {
     if (!s_lcdFound) return;
     printPadded(0, l1);
     printPadded(1, l2);
+    printPadded(2, l3);
+    printPadded(3, l4);
 }
 
 void displayCredits(int credits) {
     if (!s_lcdFound) return;
-    char l1[17], l2[17];
+    char l1[21], l2[21];
     snprintf(l1, sizeof(l1), "SMART VENDING");
     snprintf(l2, sizeof(l2), "Credits: %02d BTL", credits);
     displayMessage(String(l1), String(l2));
@@ -158,7 +159,7 @@ void displayCredits(int credits) {
 
 void displayProductSelected(int productNum, const String& name, float price, int credits) {
     if (!s_lcdFound) return;
-    char l1[17], l2[17];
+    char l1[21], l2[21];
     snprintf(l1, sizeof(l1), "P%d:%-9s $%d", productNum, name.substring(0, 9).c_str(), (int)price);
     snprintf(l2, sizeof(l2), "Credits: %d", credits);
     displayMessage(String(l1), String(l2));
@@ -166,7 +167,7 @@ void displayProductSelected(int productNum, const String& name, float price, int
 
 void displaySale(int productNum, const String& name) {
     if (!s_lcdFound) return;
-    char l1[17], l2[17];
+    char l1[21], l2[21];
     snprintf(l1, sizeof(l1), "DISPENSING...");
     snprintf(l2, sizeof(l2), "P%d:%-10s", productNum, name.substring(0, 10).c_str());
     displayMessage(String(l1), String(l2));
@@ -174,28 +175,28 @@ void displaySale(int productNum, const String& name) {
 
 void displayDone(int remainingCredits) {
     if (!s_lcdFound) return;
-    char l2[17];
+    char l2[21];
     snprintf(l2, sizeof(l2), "Credits left:%d", remainingCredits);
     displayMessage("SUCCESS!", String(l2));
 }
 
 void displayNoCredit(int requiredPrice, int currentCredits) {
     if (!s_lcdFound) return;
-    char l2[17];
+    char l2[21];
     snprintf(l2, sizeof(l2), "Need:%d Have:%d", requiredPrice, currentCredits);
     displayMessage("LOW CREDITS!", String(l2));
 }
 
 void displayEmpty(int productNum, const String& name) {
     if (!s_lcdFound) return;
-    char l2[17];
+    char l2[21];
     snprintf(l2, sizeof(l2), "P%d:%-10s", productNum, name.substring(0, 10).c_str());
     displayMessage("OUT OF STOCK!", String(l2));
 }
 
 void displayError(int productNum) {
     if (!s_lcdFound) return;
-    char l2[17];
+    char l2[21];
     snprintf(l2, sizeof(l2), "Product %d jam!", productNum);
     displayMessage("ERROR!", String(l2));
 }

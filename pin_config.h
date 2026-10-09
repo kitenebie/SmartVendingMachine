@@ -27,7 +27,7 @@ struct PinConfig {
 };
 
 /** Load pin configuration from LittleFS /pins.json (or defaults if missing). */
-void initPinConfig();
+bool initPinConfig();
 
 /** Get current in-RAM pin configuration. */
 const PinConfig& getPinConfig();
