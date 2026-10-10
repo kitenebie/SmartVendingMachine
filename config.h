@@ -24,7 +24,7 @@
 #define PIN_SENSOR_B    35     // Lower proximity sensor — board pin P35 / GPIO 35 (input only)
 #define BOTTLE_VALIDATION_TIME_MS  200   // Both sensors must be active for this duration
 #define BOTTLE_DEBOUNCE_MS         150
-#define BOTTLE_SENSOR_ACTIVE_LEVEL LOW  // Change after measuring the installed sensors
+#define BOTTLE_SENSOR_ACTIVE_LEVEL HIGH // Change to LOW only for inverted sensor modules
 
 // ---- Product Selection Buttons (4 Buttons) -----------------
 #define PIN_BTN_1       13     // Product 1 button — board pin P13 / GPIO 13 (internal pull-up)
