@@ -28,7 +28,7 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 
 ## Dispensing behavior
 
-- A bottle must activate the entry sensor, clear it, then activate the upper and lower sensors together for 200 ms. This awards one credit to the active account.
+- A bottle earns one credit when the entry sensor is clear and the upper and lower sensors are both active for 200 ms.
 - A product button works only while that account's 60-second bottle session is active. The web portal can also request one item.
 - The firmware checks stock, credits, and that all drop sensors are clear before starting the selected servo. The first active drop sensor stops all dispensers and confirms delivery. After confirmation, the firmware saves the charge and new stock. A five-second timeout stops the servo without a charge.
 - Each product keeps its `slot` number when another product is deleted. A new product takes the lowest unused slot.

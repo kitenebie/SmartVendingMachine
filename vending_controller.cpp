@@ -6,7 +6,7 @@
 #include <freertos/semphr.h>
 
 static SemaphoreHandle_t hardwareMutex;
-static bool collectionEnabled = false, entrySeen = false, bottleInFlight = false, bottleReady = false, doorOpen = false;
+static bool collectionEnabled = false, bottleInFlight = false, bottleReady = false, doorOpen = false;
 static uint32_t validationStarted = 0, doorOpenedAt = 0, dispenseStartedAt = 0;
 static uint8_t dispensingSlot = 0, buttonPress = 0;
 static uint8_t buttonRaw[4], buttonStable[4];
@@ -87,7 +87,7 @@ void setBottleCollectionEnabled(bool enabled) {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
     collectionEnabled = enabled;
     if (!enabled) {
-        validationStarted = 0; entrySeen = false; bottleInFlight = false; bottleReady = false;
+        validationStarted = 0; bottleInFlight = false; bottleReady = false;
         door(false);
     }
     xSemaphoreGive(hardwareMutex);
@@ -150,8 +150,7 @@ void updateVendingMachine() {
         bool entry = digitalRead(p.sensorEntry) == BOTTLE_SENSOR_ACTIVE_LEVEL;
         bool sensorA = digitalRead(p.sensorA) == BOTTLE_SENSOR_ACTIVE_LEVEL;
         bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_ACTIVE_LEVEL;
-        if (entry) entrySeen = true;
-        if (!bottleInFlight && entrySeen && !entry && sensorA && sensorB) {
+        if (!bottleInFlight && !entry && sensorA && sensorB) {
             if (!validationStarted) validationStarted = now;
             else if (now - validationStarted >= BOTTLE_VALIDATION_TIME_MS) {
                 bottleInFlight = true; bottleReady = true; validationStarted = 0; door(true);
@@ -159,7 +158,7 @@ void updateVendingMachine() {
         } else if (!bottleInFlight) validationStarted = 0;
         if (bottleInFlight && !entry && !sensorA && !sensorB &&
             now - doorOpenedAt >= DOOR_MIN_OPEN_TIME_MS) {
-            bottleInFlight = false; entrySeen = false; door(false);
+            bottleInFlight = false; door(false);
         }
     }
     xSemaphoreGive(hardwareMutex);
