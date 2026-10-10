@@ -56,21 +56,29 @@ bool initUsers() {
         users.push_back(user);
     }}
     if (users.empty()) {
-        if (fileExists(USERS_FILE)) return false;
-        User admin; admin.id = randomHex(); admin.firstname = "System"; admin.lastname = "Administrator"; admin.email = "admin@local";
-        String initialPassword = randomHex(12);
-        admin.salt = randomHex(); admin.passwordHash = passwordHash(initialPassword, admin.salt); admin.role = "admin"; admin.createdAt = nowIso(); users.push_back(admin);
-        if (!saveUsers()) return false;
-        Serial.printf("[Auth] Initial admin login: admin@local / %s\n", initialPassword.c_str());
-    }
-    for (User& user : users) if (user.role == "admin" && verifyUserPassword(user, "admin123")) {
-        String replacement = randomHex(12);
-        String oldSalt = user.salt, oldHash = user.passwordHash;
-        user.salt = randomHex(); user.passwordHash = passwordHash(replacement, user.salt);
-        if (!saveUsers()) { user.salt = oldSalt; user.passwordHash = oldHash; return false; }
-        Serial.printf("[Auth] Replaced known admin password for %s: %s\n", user.email.c_str(), replacement.c_str());
-    }
-    return true;
+    if (fileExists(USERS_FILE)) return false;
+
+    User admin;
+    admin.id = randomHex();
+    admin.firstname = "System";
+    admin.lastname = "Administrator";
+    admin.email = "admin@local";
+
+    String initialPassword = "admin123";
+    admin.salt = randomHex();
+    admin.passwordHash = passwordHash(initialPassword, admin.salt);
+    admin.role = "admin";
+    admin.createdAt = nowIso();
+
+    users.push_back(admin);
+
+    if (!saveUsers()) return false;
+
+    Serial.printf("[Auth] Initial admin login: %s / %s\n",
+                  admin.email.c_str(), initialPassword.c_str());
+}
+
+return true;
 }
 User* findUserByEmail(const String& email) { for (User& user : users) if (user.email.equalsIgnoreCase(email)) return &user; return nullptr; }
 User* findUserById(const String& id) { for (User& user : users) if (user.id == id) return &user; return nullptr; }
