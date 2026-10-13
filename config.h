@@ -8,7 +8,7 @@
 // ESP32 38-pin board silk-screen guide:
 // Pxx means GPIO xx (for example, P23 = GPIO 23).
 // The board label includes "P", but use only the number in code (P23 -> 23).
-// This project uses normal P-labelled pins for every IR sensor; VP/GPIO 36 is reserved for the entry sensor.
+// This project uses normal P-labelled pins for every IR sensor.
 // Do not use SD0, SD1, SD2, SD3, CMD, or CLK: they are connected to the ESP32 flash.
 
 // ---- WiFi Access Point (Hotspot) Settings ------------------
@@ -17,9 +17,6 @@
 #define AP_MAX_CONN     4
 
 // ---- Bottle Detection Proximity Sensors -------------------
-// The entry sensor is at the front of the tube.  It prevents a credit from
-// being awarded while a bottle is still entering the tube.
-#define PIN_SENSOR_ENTRY 36     // Front/entry proximity sensor — GPIO 36 (input only)
 #define PIN_SENSOR_A    34     // Upper proximity sensor — board pin P34 / GPIO 34 (input only)
 #define PIN_SENSOR_B    35     // Lower proximity sensor — board pin P35 / GPIO 35 (input only)
 #define BOTTLE_VALIDATION_TIME_MS  200   // Both sensors must be active for this duration

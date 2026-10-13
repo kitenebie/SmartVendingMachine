@@ -64,7 +64,7 @@ bool initVendingMachine() {
     hardwareMutex = xSemaphoreCreateMutex();
     if (!hardwareMutex) return false;
     const PinConfig& p = getPinConfig();
-    pinMode(p.sensorEntry, INPUT); pinMode(p.sensorA, INPUT); pinMode(p.sensorB, INPUT);
+    pinMode(p.sensorA, INPUT); pinMode(p.sensorB, INPUT);
     const int buttons[4] = {p.btn1, p.btn2, p.btn3, p.btn4};
     const int sensors[4] = {p.ir1, p.ir2, p.ir3, p.ir4};
     for (int i = 0; i < 4; ++i) {
@@ -147,16 +147,15 @@ void updateVendingMachine() {
         dispensingSlot = 0;
     }
     if (collectionEnabled) {
-        bool entry = digitalRead(p.sensorEntry) == BOTTLE_SENSOR_ACTIVE_LEVEL;
         bool sensorA = digitalRead(p.sensorA) == BOTTLE_SENSOR_ACTIVE_LEVEL;
         bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_ACTIVE_LEVEL;
-        if (!bottleInFlight && !entry && sensorA && sensorB) {
+        if (!bottleInFlight && sensorA && sensorB) {
             if (!validationStarted) validationStarted = now;
             else if (now - validationStarted >= BOTTLE_VALIDATION_TIME_MS) {
                 bottleInFlight = true; bottleReady = true; validationStarted = 0; door(true);
             }
         } else if (!bottleInFlight) validationStarted = 0;
-        if (bottleInFlight && !entry && !sensorA && !sensorB &&
+        if (bottleInFlight && !sensorA && !sensorB &&
             now - doorOpenedAt >= DOOR_MIN_OPEN_TIME_MS) {
             bottleInFlight = false; door(false);
         }

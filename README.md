@@ -1,6 +1,6 @@
 # ESP32 reverse vending machine
 
-Four product slots, three bottle sensors, four selection buttons, four drop sensors, a tube door servo, and a 20×4 I2C LCD. The ESP32 runs its own WiFi access point and serves a small user portal and admin page.
+Four product slots, two bottle sensors, four selection buttons, four drop sensors, a tube door servo, and a 20×4 I2C LCD. The ESP32 runs its own WiFi access point and serves a small user portal and admin page.
 
 ## Before wiring
 
@@ -8,7 +8,7 @@ The old [Plan.jpg](Plan.jpg) is a **concept sketch, not a wiring schematic**. It
 
 | Part | GPIO |
 | --- | --- |
-| Bottle entry, upper, lower sensors | 36, 34, 35 |
+| Bottle sensors (upper and lower) | 34, 35 |
 | Product buttons 1–4 | 13, 14, 27, 26 |
 | Drop sensors 1–4 | 16, 17, 32, 33 |
 | Dispenser servos 1–4 | 18, 19, 21, 25 |
@@ -28,7 +28,7 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 
 ## Dispensing behavior
 
-- A bottle earns one credit when the entry sensor is clear and the upper and lower sensors are both active for 200 ms.
+- A bottle earns one credit when the upper and lower sensors are both active for 200 ms.
 - A product button works only while that account's 60-second bottle session is active. The web portal can also request one item.
 - The firmware checks stock, credits, and that all drop sensors are clear before starting the selected servo. The first active drop sensor stops all dispensers and confirms delivery. After confirmation, the firmware saves the charge and new stock. A five-second timeout stops the servo without a charge.
 - Each product keeps its `slot` number when another product is deleted. A new product takes the lowest unused slot.

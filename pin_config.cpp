@@ -13,7 +13,6 @@ static const char* PINS_FILE = "/pins.json";
 
 // Default hardware pins
 static PinConfig s_pins = {
-    PIN_SENSOR_ENTRY, // sensorEntry (front of bottle tube; input only)
     34, // sensorA
     35, // sensorB
     13, // btn1
@@ -41,7 +40,7 @@ bool isValidGpio(int pin, bool allowInputOnly) {
 }
 
 static bool validConfig(const PinConfig& cfg) {
-    const int inputOnlyAllowed[] = {cfg.sensorEntry, cfg.sensorA, cfg.sensorB};
+    const int inputOnlyAllowed[] = {cfg.sensorA, cfg.sensorB};
     const int outputCapable[] = {cfg.btn1, cfg.btn2, cfg.btn3, cfg.btn4,
         cfg.ir1, cfg.ir2, cfg.ir3, cfg.ir4, cfg.servo1, cfg.servo2,
         cfg.servo3, cfg.servo4, cfg.doorServo, cfg.lcdSda, cfg.lcdScl};
@@ -77,7 +76,6 @@ bool initPinConfig() {
         return false;
     }
 
-    s_pins.sensorEntry = doc["sensorEntry"] | s_pins.sensorEntry;
     s_pins.sensorA = doc["sensorA"] | s_pins.sensorA;
     s_pins.sensorB = doc["sensorB"] | s_pins.sensorB;
     s_pins.btn1    = doc["btn1"]    | s_pins.btn1;
@@ -122,7 +120,6 @@ bool savePinConfig(const PinConfig& cfg) {
     if (!validConfig(cfg)) return false;
 
     JsonDocument doc;
-    doc["sensorEntry"] = cfg.sensorEntry;
     doc["sensorA"] = cfg.sensorA;
     doc["sensorB"] = cfg.sensorB;
     doc["btn1"]    = cfg.btn1;
@@ -152,7 +149,7 @@ bool savePinConfig(const PinConfig& cfg) {
 }
 
 void resetPinConfigToDefaults() {
-    PinConfig defaults = {PIN_SENSOR_ENTRY, 34, 35, 13, 14, 27, 26, 16, 17, 32, 33,
+    PinConfig defaults = {34, 35, 13, 14, 27, 26, 16, 17, 32, 33,
                           18, 19, 21, 25, PIN_DOOR_SERVO, 23, 22};
     savePinConfig(defaults);
 }

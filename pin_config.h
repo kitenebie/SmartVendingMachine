@@ -6,7 +6,6 @@
 #include <Arduino.h>
 
 struct PinConfig {
-    int sensorEntry; // Front bottle-entry sensor; must be clear before credit validation
     int sensorA;     // Bottle Sensor A
     int sensorB;     // Bottle Sensor B
     int btn1;        // Button Product 1
