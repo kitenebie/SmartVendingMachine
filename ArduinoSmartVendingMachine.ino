@@ -86,6 +86,8 @@ void setup() {
         Serial.println("[FATAL] Access point could not start. Halting.");
         while (true) delay(1000);
     }
+    String stationSsid, stationPassword;
+    if (loadStationCredentials(stationSsid, stationPassword)) connectToStation(stationSsid, stationPassword);
 
     // 7. Register API routes and start Async Web Server
     Serial.println("[Init] Starting Web Server...");

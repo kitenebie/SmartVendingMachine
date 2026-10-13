@@ -16,6 +16,10 @@
 #define AP_CHANNEL      1
 #define AP_MAX_CONN     4
 
+// ---- Account limits ----------------------------------------
+#define DAILY_DISPENSE_LIMIT       4
+#define CREDIT_EXPIRY_SECONDS      (2UL * 24UL * 60UL * 60UL)
+
 // ---- Bottle Detection Proximity Sensors -------------------
 #define PIN_SENSOR_A    34     // Upper proximity sensor — board pin P34 / GPIO 34 (input only)
 #define PIN_SENSOR_B    35     // Lower proximity sensor — board pin P35 / GPIO 35 (input only)

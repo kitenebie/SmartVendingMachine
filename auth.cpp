@@ -9,6 +9,7 @@
 #include <map>
 #include <time.h>
 #include <limits.h>
+#include "config.h"
 
 static const char* USERS_FILE = "/data/users.json";
 static const char* LOG_FILE = "/data/dispense_log.json";
@@ -24,7 +25,17 @@ static String randomHex(size_t bytes = 16) {
 }
 static String nowIso() {
     time_t now = time(nullptr); if (now < 1700000000) return "";
-    struct tm value; gmtime_r(&now, &value); char out[25]; strftime(out, sizeof(out), "%Y-%m-%dT%H:%M:%SZ", &value); return out;
+    struct tm value; localtime_r(&now, &value); char out[25]; strftime(out, sizeof(out), "%Y-%m-%dT%H:%M:%S%z", &value); return out;
+}
+static bool currentTime(time_t& now) { now = time(nullptr); return now >= 1700000000; }
+static String currentDate(time_t now) {
+    struct tm value; localtime_r(&now, &value); char out[11]; strftime(out, sizeof(out), "%Y-%m-%d", &value); return out;
+}
+bool currentCreditActivity(String& timestamp, uint32_t& epoch) {
+    time_t now;
+    if (!currentTime(now)) return false;
+    timestamp = nowIso(); epoch = now;
+    return true;
 }
 static String passwordHash(const String& password, const String& salt) {
     uint8_t digest[32]; String input = salt + ":" + password; mbedtls_sha256_context context; mbedtls_sha256_init(&context);
@@ -38,7 +49,8 @@ static bool sameConstantTime(const String& a, const String& b) {
 static void writeUser(JsonObject object, const User& user) {
     object["id"] = user.id; object["firstname"] = user.firstname; object["middlename"] = user.middlename; object["lastname"] = user.lastname;
     object["email"] = user.email; object["password_hash"] = user.passwordHash; object["salt"] = user.salt; object["role"] = user.role;
-    object["credits"] = user.credits; object["last_credit_activity"] = user.lastCreditActivity; object["created_at"] = user.createdAt;
+    object["credits"] = user.credits; object["last_credit_activity"] = user.lastCreditActivity; object["last_credit_activity_at"] = user.lastCreditActivityAt;
+    object["daily_dispense_date"] = user.dailyDispenseDate; object["daily_dispense_count"] = user.dailyDispenses; object["created_at"] = user.createdAt;
 }
 bool saveUsers() {
     JsonDocument doc; JsonArray list = doc["users"].to<JsonArray>(); for (const User& user : users) writeUser(list.add<JsonObject>(), user);
@@ -51,7 +63,9 @@ bool initUsers() {
       for (JsonObject item : doc["users"].as<JsonArray>()) {
         User user; user.id = item["id"] | ""; user.firstname = item["firstname"] | ""; user.middlename = item["middlename"] | "";
         user.lastname = item["lastname"] | ""; user.email = item["email"] | ""; user.passwordHash = item["password_hash"] | ""; user.salt = item["salt"] | "";
-        user.role = item["role"] | "user"; user.credits = item["credits"] | 0; user.lastCreditActivity = item["last_credit_activity"] | ""; user.createdAt = item["created_at"] | "";
+        user.role = item["role"] | "user"; user.credits = item["credits"] | 0; user.lastCreditActivity = item["last_credit_activity"] | "";
+        user.lastCreditActivityAt = item["last_credit_activity_at"] | 0; user.dailyDispenseDate = item["daily_dispense_date"] | "";
+        user.dailyDispenses = item["daily_dispense_count"] | 0; user.createdAt = item["created_at"] | "";
         if (user.id.isEmpty() || user.email.isEmpty() || user.salt.isEmpty()) return false;
         users.push_back(user);
     }}
@@ -101,15 +115,34 @@ bool changeUserPassword(User& user, const String& currentPassword, const String&
 bool verifyUserPassword(const User& user, const String& password) { return sameConstantTime(user.passwordHash, passwordHash(password, user.salt)); }
 bool setUserCredits(User& user, int amount) {
     if (amount < 0) return false;
-    int previous = user.credits; String previousActivity = user.lastCreditActivity;
-    user.credits = amount; user.lastCreditActivity = nowIso();
+    int previous = user.credits; String previousActivity = user.lastCreditActivity; uint32_t previousAt = user.lastCreditActivityAt;
+    String timestamp; uint32_t epoch;
+    user.credits = amount;
+    if (currentCreditActivity(timestamp, epoch)) { user.lastCreditActivity = timestamp; user.lastCreditActivityAt = epoch; }
+    else { user.lastCreditActivity = ""; user.lastCreditActivityAt = 0; }
     if (saveUsers()) return true;
-    user.credits = previous; user.lastCreditActivity = previousActivity;
+    user.credits = previous; user.lastCreditActivity = previousActivity; user.lastCreditActivityAt = previousAt;
     return false;
 }
 bool addUserCredits(User& user, int amount) {
     if (amount < 0 || user.credits > INT_MAX - amount) return false;
     return setUserCredits(user, user.credits + amount);
+}
+bool expireInactiveCredits(User& user) {
+    time_t now;
+    if (!currentTime(now) || !user.lastCreditActivityAt || now - user.lastCreditActivityAt < CREDIT_EXPIRY_SECONDS) return true;
+    int previousCredits = user.credits; String previousActivity = user.lastCreditActivity; uint32_t previousAt = user.lastCreditActivityAt;
+    user.credits = 0; user.lastCreditActivity = nowIso(); user.lastCreditActivityAt = now;
+    if (saveUsers()) return true;
+    user.credits = previousCredits; user.lastCreditActivity = previousActivity; user.lastCreditActivityAt = previousAt;
+    return false;
+}
+bool getDailyDispenseCount(const User& user, String& date, int& count) {
+    time_t now;
+    if (!currentTime(now)) return false;
+    date = currentDate(now);
+    count = user.dailyDispenseDate == date ? user.dailyDispenses : 0;
+    return true;
 }
 static void purgeSessions() { uint32_t now = millis(); for (auto it = sessionTouched.begin(); it != sessionTouched.end();) { if (now - it->second > SESSION_EXPIRY_MS) { sessions.erase(it->first); it = sessionTouched.erase(it); } else ++it; } }
 String createSession(const String& userId) { purgeSessions(); String token = randomHex(32); sessions[token] = userId; sessionTouched[token] = millis(); return token; }

@@ -1,17 +1,21 @@
 #pragma once
 // ============================================================
-//  wifi_manager.h -- WiFi Access Point (Hotspot) mode
+//  wifi_manager.h -- WiFi hotspot and station mode
 //
-//  The ESP32 creates its own WiFi network.
-//  Devices connect directly to the ESP32 -- no router needed.
+//  The ESP32 keeps its own WiFi network while optionally joining a router.
 // ============================================================
 #include <Arduino.h>
 
 /** Read or create a unique per-device WiFi password in NVS. */
 bool loadAccessPointPassword(String& password);
+bool loadStationCredentials(String& ssid, String& password);
+bool saveStationCredentials(const String& ssid, const String& password);
+void connectToStation(const String& ssid, const String& password);
+bool stationConnected();
+bool timeSynchronized();
 
 /**
- * Start the ESP32 as a WiFi Access Point (hotspot).
+ * Start the ESP32 as a WiFi Access Point while keeping station mode available.
  *
  * @param ssid     Network name broadcast by the ESP32
  * @param password Password (leave empty "" for open/unsecured network)

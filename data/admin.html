@@ -25,6 +25,16 @@ input,button{padding:8px;margin:3px}button{background:#2563eb;color:white;border
   </form>
   <table><thead><tr><th>Slot</th><th>Name</th><th>Credits</th><th>Stock</th><th>Actions</th></tr></thead><tbody id="products"></tbody></table>
 </section>
+<section>
+  <h2>Internet time setup</h2>
+  <p>Connect the machine to Wi-Fi with internet so daily limits and credit expiry use the correct time.</p>
+  <form id="wifiForm">
+    <input id="wifiSsid" placeholder="Wi-Fi name (SSID)" autocomplete="off" required>
+    <input id="wifiPassword" type="password" placeholder="Wi-Fi password" autocomplete="new-password">
+    <button>Save and connect</button>
+  </form>
+  <p id="wifiStatus"></p>
+</section>
 <section><h2>Recent dispense log</h2><pre id="log"></pre></section>
 <section>
   <h2>Change admin password</h2>
@@ -50,9 +60,12 @@ function action(row, label, callback) {
   row.lastElementChild.append(button);
 }
 async function load() {
-  const [accounts, listing, history] = await Promise.all([
-    api('/api/admin/users'), api('/api/products'), api('/api/admin/log')
+  const [accounts, listing, history, wifi] = await Promise.all([
+    api('/api/admin/users'), api('/api/products'), api('/api/admin/log'), api('/api/admin/wifi')
   ]);
+  $('wifiSsid').value = wifi.ssid;
+  $('wifiStatus').textContent = wifi.time_synced ? 'Time synchronized.' :
+    (wifi.connected ? 'Connected. Synchronizing time…' : 'Not connected.');
   $('users').replaceChildren(...accounts.users.map(user => {
     const row = document.createElement('tr');
     cell(row, user.email); cell(row, user.role); cell(row, user.credits); cell(row, '');
@@ -104,6 +117,17 @@ $('productForm').onsubmit = async event => {
   if (!name || !Number.isSafeInteger(creditCost) || creditCost < 0 ||
       !Number.isSafeInteger(stock) || stock < 0) { message('Invalid product values.'); return; }
   if (await run(() => api('/api/products', {method:'POST', body:JSON.stringify({name, credit_cost:creditCost, stock})}))) event.target.reset();
+};
+$('wifiForm').onsubmit = async event => {
+  event.preventDefault();
+  const ssid = $('wifiSsid').value.trim(), password = $('wifiPassword').value;
+  if (!ssid) { message('Enter the Wi-Fi name.'); return; }
+  const body = {ssid};
+  if (password) body.password = password;
+  if (await run(() => api('/api/admin/wifi', {method:'POST', body:JSON.stringify(body)}))) {
+    $('wifiPassword').value = '';
+    message('Saved. Connecting to Wi-Fi…');
+  }
 };
 $('logout').onclick = logout;
 $('passwordForm').onsubmit = async event => {

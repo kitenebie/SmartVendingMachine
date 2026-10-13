@@ -4,6 +4,8 @@
 #include "storage.h"
 #include "vending_controller.h"
 #include "display_manager.h"
+#include "wifi_manager.h"
+#include "config.h"
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <freertos/FreeRTOS.h>
@@ -20,6 +22,10 @@ struct ActiveSession { String userId; bool locked = false; uint32_t expiresAt = 
 struct PendingDispense {
     String userId, productId;
     int targetCredits = 0, targetStock = 0;
+    String targetDispenseDate;
+    int targetDailyDispenses = 0;
+    String targetCreditActivity;
+    uint32_t targetCreditActivityAt = 0;
     uint8_t slot = 0;
     bool delivered = false, journalWritten = false;
 };
@@ -45,6 +51,7 @@ static String tokenFor(AsyncWebServerRequest* request) {
 static bool requireUser(AsyncWebServerRequest* request, User*& user) {
     user = sessionUser(tokenFor(request));
     if (!user) { sendError(request, 401, "unauthorized"); return false; }
+    if (!expireInactiveCredits(*user)) { sendError(request, 500, "credit_expiry_save_failed"); return false; }
     return true;
 }
 static bool requireAdmin(AsyncWebServerRequest* request, User*& user) {
@@ -76,6 +83,8 @@ static void userJson(JsonObject result, const User& user) {
     result["middlename"] = user.middlename; result["lastname"] = user.lastname;
     result["email"] = user.email; result["role"] = user.role;
     result["credits"] = user.credits; result["last_credit_activity"] = user.lastCreditActivity;
+    String date; int dailyDispenses;
+    if (getDailyDispenseCount(user, date, dailyDispenses)) result["daily_dispenses"] = dailyDispenses;
     result["created_at"] = user.createdAt;
 }
 static void productsJson(JsonArray output) {
@@ -90,6 +99,8 @@ static bool writeJournal(const PendingDispense& transaction) {
     JsonDocument doc;
     doc["user_id"] = transaction.userId; doc["product_id"] = transaction.productId;
     doc["credits"] = transaction.targetCredits; doc["stock"] = transaction.targetStock;
+    doc["daily_dispense_date"] = transaction.targetDispenseDate; doc["daily_dispense_count"] = transaction.targetDailyDispenses;
+    doc["last_credit_activity"] = transaction.targetCreditActivity; doc["last_credit_activity_at"] = transaction.targetCreditActivityAt;
     String out; serializeJson(doc, out);
     return writeFile(JOURNAL_FILE, out);
 }
@@ -102,6 +113,10 @@ bool recoverRedemption() {
     int credits = doc["credits"] | -1, stock = doc["stock"] | -1;
     if (!user || !product || credits < 0 || stock < 0) return false;
     user->credits = credits; product->stock = stock;
+    user->dailyDispenseDate = doc["daily_dispense_date"] | user->dailyDispenseDate;
+    user->dailyDispenses = doc["daily_dispense_count"] | user->dailyDispenses;
+    user->lastCreditActivity = doc["last_credit_activity"] | user->lastCreditActivity;
+    user->lastCreditActivityAt = doc["last_credit_activity_at"] | user->lastCreditActivityAt;
     return saveUsers() && saveProducts() && deleteFile(JOURNAL_FILE);
 }
 static bool commitDelivered() {
@@ -113,6 +128,10 @@ static bool commitDelivered() {
     Product* product = getProductById(pending.productId);
     if (!user || !product) return false;
     user->credits = pending.targetCredits;
+    user->dailyDispenseDate = pending.targetDispenseDate;
+    user->dailyDispenses = pending.targetDailyDispenses;
+    user->lastCreditActivity = pending.targetCreditActivity;
+    user->lastCreditActivityAt = pending.targetCreditActivityAt;
     product->stock = pending.targetStock;
     if (!saveUsers() || !saveProducts() || !deleteFile(JOURNAL_FILE)) return false;
     if (!appendDispenseLog(pending.userId, pending.productId, 1))
@@ -125,9 +144,14 @@ static bool commitDelivered() {
 static bool beginRedemption(User& user, Product& product) {
     if (pending.slot || bottleCreditsWaiting || fileExists(JOURNAL_FILE) || product.stock < 1 ||
         product.creditCost > user.credits) return false;
+    String date; int dailyDispenses;
+    if (!getDailyDispenseCount(user, date, dailyDispenses) || dailyDispenses >= DAILY_DISPENSE_LIMIT) return false;
     pending.userId = user.id; pending.productId = product.id;
     pending.targetCredits = user.credits - product.creditCost;
     pending.targetStock = product.stock - 1;
+    pending.targetDispenseDate = date;
+    pending.targetDailyDispenses = dailyDispenses + 1;
+    if (!currentCreditActivity(pending.targetCreditActivity, pending.targetCreditActivityAt)) { pending = {}; return false; }
     pending.slot = product.slot;
     if (!startDispense(product.slot)) { pending = {}; return false; }
     lastResultUser = user.id; lastResult = "dispensing";
@@ -235,6 +259,9 @@ static void handleRedeem(AsyncWebServerRequest* request, uint8_t* data, size_t l
     if (!product || product->stock < 1 || product->creditCost > user->credits) {
         sendError(request, 400, "insufficient_credits_or_stock"); return;
     }
+    String date; int dailyDispenses;
+    if (!getDailyDispenseCount(*user, date, dailyDispenses)) { sendError(request, 503, "clock_not_synced"); return; }
+    if (dailyDispenses >= DAILY_DISPENSE_LIMIT) { sendError(request, 429, "daily_dispense_limit_reached"); return; }
     if (!beginRedemption(*user, *product)) { sendError(request, 409, "machine_busy_or_sensor_blocked"); return; }
     JsonDocument result; result["status"] = "dispensing"; sendJson(request, 202, result);
 }
@@ -260,6 +287,26 @@ static void handleAdminCredits(AsyncWebServerRequest* request, uint8_t* data, si
         sendError(request, 400, "invalid_credits_or_storage_error"); return;
     }
     JsonDocument result; result["success"] = true; sendJson(request, 200, result);
+}
+static void handleAdminWiFi(AsyncWebServerRequest* request) {
+    ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
+    String ssid, password; loadStationCredentials(ssid, password);
+    JsonDocument result; result["ssid"] = ssid; result["connected"] = stationConnected(); result["time_synced"] = timeSynchronized();
+    sendJson(request, 200, result);
+}
+static void handleAdminWiFiSave(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total) {
+    ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
+    JsonDocument doc; if (!readBody(request, data, len, index, total, doc)) return;
+    String ssid = doc["ssid"] | "", password;
+    ssid.trim();
+    if (!doc["password"].isNull()) password = doc["password"].as<String>();
+    else {
+        String savedSsid; loadStationCredentials(savedSsid, password);
+        if (ssid != savedSsid) { sendError(request, 400, "wifi_password_required"); return; }
+    }
+    if (!saveStationCredentials(ssid, password)) { sendError(request, 400, "invalid_wifi_settings"); return; }
+    connectToStation(ssid, password);
+    JsonDocument result; result["status"] = "connecting"; sendJson(request, 200, result);
 }
 
 void updateReverseVending() {
@@ -302,7 +349,12 @@ void updateReverseVending() {
         if (user && product) {
             if (product->stock < 1) displayEmpty(pressed, product->name);
             else if (product->creditCost > user->credits) displayNoCredit(product->creditCost, user->credits);
-            else beginRedemption(*user, *product);
+            else {
+                String date; int dailyDispenses;
+                if (!getDailyDispenseCount(*user, date, dailyDispenses)) displayMessage("CLOCK NOT READY", "Connect to Wi-Fi");
+                else if (dailyDispenses >= DAILY_DISPENSE_LIMIT) displayMessage("DAILY LIMIT", "4 ITEMS TODAY");
+                else beginRedemption(*user, *product);
+            }
         }
     }
 }
@@ -326,6 +378,8 @@ bool setupAPI(AsyncWebServer& server) {
     server.on("/api/admin/users", HTTP_GET, handleAdminUsers);
     server.on("/api/admin/log", HTTP_GET, handleAdminLog);
     server.on("/api/admin/credits", HTTP_POST, emptyBody, nullptr, handleAdminCredits);
+    server.on("/api/admin/wifi", HTTP_GET, handleAdminWiFi);
+    server.on("/api/admin/wifi", HTTP_POST, emptyBody, nullptr, handleAdminWiFiSave);
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/login.html"); });
     server.on("/login.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/login.html", "text/html"); });
     server.on("/portal", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/portal.html", "text/html"); });

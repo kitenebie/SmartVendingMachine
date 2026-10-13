@@ -8,6 +8,7 @@
 #include <WiFi.h>
 #include <Preferences.h>
 #include <esp_random.h>
+#include <time.h>
 
 bool loadAccessPointPassword(String& password) {
     Preferences prefs;
@@ -27,6 +28,32 @@ bool loadAccessPointPassword(String& password) {
     return true;
 }
 
+bool loadStationCredentials(String& ssid, String& password) {
+    Preferences prefs;
+    if (!prefs.begin("vending-sta", true)) return false;
+    ssid = prefs.getString("ssid", ""); password = prefs.getString("password", ""); prefs.end();
+    return true;
+}
+
+bool saveStationCredentials(const String& ssid, const String& password) {
+    if (ssid.isEmpty() || ssid.length() > 32 || password.length() > 63) return false;
+    Preferences prefs;
+    if (!prefs.begin("vending-sta", false)) return false;
+    bool saved = prefs.putString("ssid", ssid) == ssid.length() && prefs.putString("password", password) == password.length();
+    prefs.end();
+    return saved;
+}
+
+void connectToStation(const String& ssid, const String& password) {
+    if (ssid.isEmpty()) return;
+    WiFi.begin(ssid.c_str(), password.c_str());
+    configTzTime("PST-8", "pool.ntp.org", "time.nist.gov");
+    Serial.printf("[WiFi] Connecting to configured network: %s\n", ssid.c_str());
+}
+
+bool stationConnected() { return WiFi.status() == WL_CONNECTED; }
+bool timeSynchronized() { return time(nullptr) >= 1700000000; }
+
 bool startAccessPoint(const char* ssid,
                       const char* password,
                       int         channel,
@@ -35,8 +62,8 @@ bool startAccessPoint(const char* ssid,
 
     Serial.println("[WiFi] Starting Access Point (hotspot) mode...");
 
-    // Switch to AP-only mode (not STA)
-    WiFi.mode(WIFI_AP);
+    // Keep the hotspot available while station mode connects for NTP.
+    WiFi.mode(WIFI_AP_STA);
 
     // password == "" means open/unsecured network
     bool ok;
