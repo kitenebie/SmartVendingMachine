@@ -9,6 +9,7 @@
 #include <Preferences.h>
 #include <esp_random.h>
 #include <time.h>
+#include <sys/time.h>
 
 bool loadAccessPointPassword(String& password) {
     Preferences prefs;
@@ -53,6 +54,15 @@ void connectToStation(const String& ssid, const String& password) {
 
 bool stationConnected() { return WiFi.status() == WL_CONNECTED; }
 bool timeSynchronized() { return time(nullptr) >= 1700000000; }
+bool setSystemTime(uint32_t epochSeconds) {
+    if (epochSeconds < 1700000000UL) return false;
+    setenv("TZ", "PST-8", 1);
+    tzset();
+    struct timeval value;
+    value.tv_sec = static_cast<time_t>(epochSeconds);
+    value.tv_usec = 0;
+    return settimeofday(&value, nullptr) == 0;
+}
 
 bool startAccessPoint(const char* ssid,
                       const char* password,

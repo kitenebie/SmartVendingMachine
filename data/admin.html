@@ -27,7 +27,7 @@ input,button{padding:8px;margin:3px}button{background:#2563eb;color:white;border
 </section>
 <section>
   <h2>Internet time setup</h2>
-  <p>Connect the machine to Wi-Fi with internet so daily limits and credit expiry use the correct time.</p>
+  <p>The admin device syncs the machine clock when this page opens. Internet Wi-Fi can also keep time synchronized automatically.</p>
   <form id="wifiForm">
     <input id="wifiSsid" placeholder="Wi-Fi name (SSID)" autocomplete="off" required>
     <input id="wifiPassword" type="password" placeholder="Wi-Fi password" autocomplete="new-password">
@@ -83,7 +83,7 @@ async function load() {
 }
 function showWifiStatus(wifi) {
   $('wifiStatus').textContent = wifi.time_synced
-    ? 'Internet connected. Clock synchronized.'
+    ? (wifi.connected ? 'Clock synchronized; router Wi-Fi connected.' : 'Clock set from this admin device; router Wi-Fi is offline.')
     : wifi.connected
       ? 'Wi-Fi connected; waiting for internet time sync…'
       : 'Not connected. Enter a router Wi-Fi with internet access.';
@@ -91,6 +91,9 @@ function showWifiStatus(wifi) {
 async function refreshWifiStatus() {
   try { showWifiStatus(await api('/api/admin/wifi')); }
   catch (error) { $('wifiStatus').textContent = error.message; }
+}
+async function syncMachineClock() {
+  await api('/api/admin/time', {method:'POST', body:JSON.stringify({epoch:Math.floor(Date.now() / 1000)})});
 }
 async function run(action) {
   try { await action(); await load(); message('Saved.'); return true; }
@@ -148,9 +151,13 @@ $('passwordForm').onsubmit = async event => {
   event.target.reset();
 };
 if (!token()) location.href = '/login.html';
-else api('/api/me').then(account => {
+else api('/api/me').then(async account => {
   if (account.user.role !== 'admin') { location.href = '/portal'; return; }
-  load().then(() => setInterval(refreshWifiStatus, 2000)).catch(error => message(error.message));
+  try {
+    await syncMachineClock();
+    await load();
+    setInterval(refreshWifiStatus, 2000);
+  } catch (error) { message(error.message); }
 }).catch(() => location.href = '/login.html');
 </script>
 </html>

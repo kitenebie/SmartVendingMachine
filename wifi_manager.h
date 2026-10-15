@@ -13,6 +13,7 @@ bool saveStationCredentials(const String& ssid, const String& password);
 void connectToStation(const String& ssid, const String& password);
 bool stationConnected();
 bool timeSynchronized();
+bool setSystemTime(uint32_t epochSeconds);
 
 /**
  * Start the ESP32 as a WiFi Access Point while keeping station mode available.

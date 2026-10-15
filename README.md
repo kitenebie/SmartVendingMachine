@@ -22,7 +22,7 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 1. Use an ESP32 Arduino core with the pin-based `ledcAttach` / `ledcWrite` API (core 3.x), ArduinoJson 7.x, ESPAsyncWebServer and its compatible AsyncTCP.
 2. Open [ArduinoSmartVendingMachine.ino](ArduinoSmartVendingMachine.ino) and upload to a classic ESP32 development board. Upload the contents of [data](data) as the LittleFS filesystem image.
 3. Open the 115200 baud Serial Monitor. On first start, record the generated WiFi password and initial `admin@local` password. Known legacy `admin123` admin passwords are rotated on upgrade and the replacement appears in Serial.
-4. Connect to `ESP32-Inventory`, open `http://192.168.4.1`, and log in. In the admin page, enter a Wi-Fi network with internet under **Internet time setup**. The machine keeps its hotspot and webserver while it uses that network for NTP time. The admin page also manages products, their fixed servo slots, user credits, and the recent dispense log.
+4. Connect to `ESP32-Inventory`, open `http://192.168.4.1`, and log in. Opening the admin page synchronizes the machine clock from the admin device (make sure its date and time are correct), so redemption can start without router Wi-Fi. Under **Internet time setup**, you can also connect the machine to a router with internet so NTP keeps the time synchronized automatically while the machine hotspot stays available. The admin page also manages products, their fixed servo slots, user credits, and the recent dispense log.
 
 **Back up runtime data before re-uploading a LittleFS image.** Filesystem upload tools can erase the partition containing `/data/users.json`, `/data/products.json`, and the dispense log. Ordinary sketch uploads do not normally replace that filesystem image.
 
@@ -32,7 +32,7 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 - A bottle earns one credit when the upper and lower sensors are both active for 200 ms.
 - A product button works only while that account's 60-second bottle session is active. The web portal can also request one item.
 - The firmware checks stock, credits, and that all drop sensors are clear before starting the selected servo. The first active drop sensor stops all dispensers and confirms delivery. After confirmation, the firmware saves the charge and new stock. A five-second timeout stops the servo without a charge.
-- Each account may receive at most four products per Philippine calendar day. Credits expire to zero after two days without account activity. Both rules require NTP time; redemption is unavailable until the clock is synchronized after a restart.
+- Each account may receive at most four products per Philippine calendar day. Credits expire to zero after two days without account activity. These rules require a valid clock. The admin page sets the clock from the admin device; connecting the machine to internet Wi-Fi keeps it synchronized automatically with NTP.
 - Each product keeps its `slot` number when another product is deleted. A new product takes the lowest unused slot.
 - The saved Wi-Fi password is not returned by the API or shown in the admin page.
 

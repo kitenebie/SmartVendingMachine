@@ -324,6 +324,13 @@ static void handleAdminWiFiSave(AsyncWebServerRequest* request, uint8_t* data, s
     connectToStation(ssid, password);
     JsonDocument result; result["status"] = "connecting"; sendJson(request, 200, result);
 }
+static void handleAdminTimeSync(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total) {
+    ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
+    JsonDocument doc; if (!readBody(request, data, len, index, total, doc)) return;
+    uint32_t epoch = doc["epoch"] | 0UL;
+    if (!setSystemTime(epoch)) { sendError(request, 400, "invalid_time"); return; }
+    JsonDocument result; result["time_synced"] = true; sendJson(request, 200, result);
+}
 
 void updateReverseVending() {
     ApiLock lock;
@@ -402,7 +409,7 @@ void updateReverseVending() {
             else if (product->creditCost > user->credits) displayNoCredit(product->creditCost, user->credits);
             else {
                 String date; int dailyDispenses;
-                if (!getDailyDispenseCount(*user, date, dailyDispenses)) displayMessage("CLOCK NOT READY", "SET ADMIN WI-FI");
+                if (!getDailyDispenseCount(*user, date, dailyDispenses)) displayMessage("CLOCK NOT READY", "OPEN ADMIN DASHBOARD");
                 else if (dailyDispenses >= DAILY_DISPENSE_LIMIT) displayMessage("DAILY LIMIT", "4 ITEMS TODAY");
                 else if (!beginRedemption(*user, *product, true)) displayMessage("VENDING UNAVAILABLE", "PLEASE TRY AGAIN");
             }
@@ -433,6 +440,7 @@ bool setupAPI(AsyncWebServer& server) {
     server.on("/api/admin/credits", HTTP_POST, emptyBody, nullptr, handleAdminCredits);
     server.on("/api/admin/wifi", HTTP_GET, handleAdminWiFi);
     server.on("/api/admin/wifi", HTTP_POST, emptyBody, nullptr, handleAdminWiFiSave);
+    server.on("/api/admin/time", HTTP_POST, emptyBody, nullptr, handleAdminTimeSync);
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/login.html"); });
     server.on("/login.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/login.html", "text/html"); });
     server.on("/portal", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/portal.html", "text/html"); });
