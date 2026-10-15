@@ -164,7 +164,10 @@ void updateVendingMachine() {
                 bottleInFlight = true; bottleReady = true; validationStarted = 0; door(true);
             }
         } else if (!bottleInFlight) validationStarted = 0;
-        if (bottleInFlight && !sensorA && !sensorB) bottleInFlight = false;
+        if (!sensorA && !sensorB) {
+            bottleInFlight = false;
+            door(false);
+        }
     }
     xSemaphoreGive(hardwareMutex);
 }

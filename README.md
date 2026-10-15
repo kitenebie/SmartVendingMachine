@@ -28,7 +28,7 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 
 ## Dispensing behavior
 
-- The tube door opens after both bottle sensors detect a bottle for 200 ms and stays open until the session ends or times out.
+- The tube door opens after both bottle sensors detect a bottle for 200 ms, then closes as soon as both sensors are clear. It also closes when the session ends or times out.
 - A bottle earns one credit when the upper and lower sensors are both active for 200 ms.
 - A product button works only while that account's 60-second bottle session is active. The web portal can also request one item.
 - The firmware checks stock, credits, and that all drop sensors are clear before starting the selected servo. The first active drop sensor stops all dispensers and confirms delivery. After confirmation, the firmware saves the charge and new stock. A five-second timeout stops the servo without a charge.
