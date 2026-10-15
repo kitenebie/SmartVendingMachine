@@ -165,6 +165,34 @@ void displayProductSelected(int productNum, const String& name, float price, int
     displayMessage(String(l1), String(l2));
 }
 
+void displayButtonPressed(int productNum, const String& name) {
+    if (!s_lcdFound) return;
+    char l2[21];
+    snprintf(l2, sizeof(l2), "P%d: %-16s", productNum, name.substring(0, 16).c_str());
+    displayMessage("BUTTON PRESSED", String(l2));
+}
+
+void displaySelectionReceived(int productNum, const String& name) {
+    if (!s_lcdFound) return;
+    char l2[21];
+    snprintf(l2, sizeof(l2), "P%d: %-16s", productNum, name.substring(0, 16).c_str());
+    displayMessage("SELECTION RECEIVED", String(l2));
+}
+
+void displayMotorRunning(int productNum, const String& name) {
+    if (!s_lcdFound) return;
+    char l2[21];
+    snprintf(l2, sizeof(l2), "P%d: %-16s", productNum, name.substring(0, 16).c_str());
+    displayMessage("MOTOR RUNNING", String(l2));
+}
+
+void displaySensorDetected(int productNum) {
+    if (!s_lcdFound) return;
+    char l2[21];
+    snprintf(l2, sizeof(l2), "Product %d drop seen", productNum);
+    displayMessage("SENSOR DETECTED", String(l2));
+}
+
 void displaySale(int productNum, const String& name) {
     if (!s_lcdFound) return;
     char l1[21], l2[21];

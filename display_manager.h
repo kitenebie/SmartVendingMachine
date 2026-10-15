@@ -13,6 +13,18 @@ void displayCredits(int credits);
 /** Display product selected confirmation & price check. */
 void displayProductSelected(int productNum, const String& name, float price, int credits);
 
+/** Show the recognized product button press. */
+void displayButtonPressed(int productNum, const String& name);
+
+/** Show that a web product selection was received. */
+void displaySelectionReceived(int productNum, const String& name);
+
+/** Show that the product motor is running. */
+void displayMotorRunning(int productNum, const String& name);
+
+/** Show that a drop sensor detected the dispensed item. */
+void displaySensorDetected(int productNum);
+
 /** Display dispensing in-progress screen. */
 void displaySale(int productNum, const String& name);
 

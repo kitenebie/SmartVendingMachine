@@ -73,6 +73,12 @@ async function redeem(id) {
         message(status.dispense === 'delivered' ? 'Delivered. Credits and stock updated.' : 'No drop detected. You were not charged.');
         break;
       }
+      if (status.dispense === 'sensor_blocked' || status.dispense === 'motor_unavailable') {
+        message(status.dispense === 'sensor_blocked'
+          ? 'A drop sensor is active. Check sensor status before trying again.'
+          : 'The motor did not start. Please contact the machine attendant.');
+        break;
+      }
       if (status.dispense === 'saving') message('Delivery detected. Saving the transaction...');
     }
   } catch (error) { message(error.message); }

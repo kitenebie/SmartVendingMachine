@@ -26,8 +26,9 @@ struct PendingDispense {
     int targetDailyDispenses = 0;
     String targetCreditActivity;
     uint32_t targetCreditActivityAt = 0;
+    uint32_t motorStartAt = 0, sensorDetectedAt = 0;
     uint8_t slot = 0;
-    bool delivered = false, journalWritten = false;
+    bool motorStarted = false, delivered = false, journalWritten = false;
 };
 static ActiveSession active;
 static PendingDispense pending;
@@ -141,7 +142,7 @@ static bool commitDelivered() {
     pending = {};
     return true;
 }
-static bool beginRedemption(User& user, Product& product) {
+static bool beginRedemption(User& user, Product& product, bool physicalButton = false) {
     if (pending.slot || bottleCreditsWaiting || fileExists(JOURNAL_FILE) || product.stock < 1 ||
         product.creditCost > user.credits) return false;
     String date; int dailyDispenses;
@@ -153,9 +154,10 @@ static bool beginRedemption(User& user, Product& product) {
     pending.targetDailyDispenses = dailyDispenses + 1;
     if (!currentCreditActivity(pending.targetCreditActivity, pending.targetCreditActivityAt)) { pending = {}; return false; }
     pending.slot = product.slot;
-    if (!startDispense(product.slot)) { pending = {}; return false; }
-    lastResultUser = user.id; lastResult = "dispensing";
-    displaySale(product.slot, product.name);
+    pending.motorStartAt = millis() + 700;
+    lastResultUser = user.id; lastResult = "button_pressed";
+    if (physicalButton) displayButtonPressed(product.slot, product.name);
+    else displaySelectionReceived(product.slot, product.name);
     return true;
 }
 
@@ -344,14 +346,39 @@ void updateReverseVending() {
     DispenseResult result = takeDispenseResult();
     if (pending.slot && result == DispenseResult::Delivered) {
         pending.delivered = true;
+        pending.sensorDetectedAt = now;
         lastResultUser = pending.userId; lastResult = "saving";
+        displaySensorDetected(pending.slot);
     }
     if (pending.slot && result == DispenseResult::TimedOut) {
         displayError(pending.slot);
         lastResultUser = pending.userId; lastResult = "timeout";
         pending = {};
     }
-    if (pending.slot && pending.delivered && now - lastCommitRetry >= 1000) {
+    if (pending.slot && !pending.motorStarted && !pending.delivered &&
+        (int32_t)(now - pending.motorStartAt) >= 0) {
+        uint8_t blockedSensors = blockedDropSensorMask();
+        if (blockedSensors) {
+            String sensors = "IR blocked:";
+            for (int i = 0; i < 4; ++i) if (blockedSensors & (1u << i)) sensors += " " + String(i + 1);
+            displayMessage("SENSOR BLOCKED", sensors);
+            lastResultUser = pending.userId; lastResult = "sensor_blocked";
+            pending = {};
+        } else {
+            Product* product = getProductById(pending.productId);
+            if (!product || !startDispense(pending.slot)) {
+                displayMessage("MOTOR NOT STARTED", "PLEASE TRY AGAIN");
+                lastResultUser = pending.userId; lastResult = "motor_unavailable";
+                pending = {};
+            } else {
+                pending.motorStarted = true;
+                lastResultUser = pending.userId; lastResult = "dispensing";
+                displayMotorRunning(pending.slot, product->name);
+            }
+        }
+    }
+    if (pending.slot && pending.delivered && now - pending.sensorDetectedAt >= 1000 &&
+        now - lastCommitRetry >= 1000) {
         lastCommitRetry = now;
         if (!commitDelivered()) Serial.println("[Vend] Retrying delivery record write.");
     }
@@ -377,7 +404,7 @@ void updateReverseVending() {
                 String date; int dailyDispenses;
                 if (!getDailyDispenseCount(*user, date, dailyDispenses)) displayMessage("CLOCK NOT READY", "Connect to Wi-Fi");
                 else if (dailyDispenses >= DAILY_DISPENSE_LIMIT) displayMessage("DAILY LIMIT", "4 ITEMS TODAY");
-                else if (!beginRedemption(*user, *product)) displayMessage("VENDING UNAVAILABLE", "PLEASE TRY AGAIN");
+                else if (!beginRedemption(*user, *product, true)) displayMessage("VENDING UNAVAILABLE", "PLEASE TRY AGAIN");
             }
         } else if (!blockedSensors && (!user || !product)) {
             displayMessage("PRODUCT UNAVAILABLE", "CHECK SLOT SETUP");
