@@ -402,7 +402,7 @@ void updateReverseVending() {
             else if (product->creditCost > user->credits) displayNoCredit(product->creditCost, user->credits);
             else {
                 String date; int dailyDispenses;
-                if (!getDailyDispenseCount(*user, date, dailyDispenses)) displayMessage("CLOCK NOT READY", "Connect to Wi-Fi");
+                if (!getDailyDispenseCount(*user, date, dailyDispenses)) displayMessage("CLOCK NOT READY", "SET ADMIN WI-FI");
                 else if (dailyDispenses >= DAILY_DISPENSE_LIMIT) displayMessage("DAILY LIMIT", "4 ITEMS TODAY");
                 else if (!beginRedemption(*user, *product, true)) displayMessage("VENDING UNAVAILABLE", "PLEASE TRY AGAIN");
             }

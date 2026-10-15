@@ -64,8 +64,7 @@ async function load() {
     api('/api/admin/users'), api('/api/products'), api('/api/admin/log'), api('/api/admin/wifi')
   ]);
   $('wifiSsid').value = wifi.ssid;
-  $('wifiStatus').textContent = wifi.time_synced ? 'Time synchronized.' :
-    (wifi.connected ? 'Connected. Synchronizing time…' : 'Not connected.');
+  showWifiStatus(wifi);
   $('users').replaceChildren(...accounts.users.map(user => {
     const row = document.createElement('tr');
     cell(row, user.email); cell(row, user.role); cell(row, user.credits); cell(row, '');
@@ -81,6 +80,17 @@ async function load() {
     return row;
   }));
   $('log').textContent = JSON.stringify(history, null, 2);
+}
+function showWifiStatus(wifi) {
+  $('wifiStatus').textContent = wifi.time_synced
+    ? 'Internet connected. Clock synchronized.'
+    : wifi.connected
+      ? 'Wi-Fi connected; waiting for internet time sync…'
+      : 'Not connected. Enter a router Wi-Fi with internet access.';
+}
+async function refreshWifiStatus() {
+  try { showWifiStatus(await api('/api/admin/wifi')); }
+  catch (error) { $('wifiStatus').textContent = error.message; }
 }
 async function run(action) {
   try { await action(); await load(); message('Saved.'); return true; }
@@ -140,7 +150,7 @@ $('passwordForm').onsubmit = async event => {
 if (!token()) location.href = '/login.html';
 else api('/api/me').then(account => {
   if (account.user.role !== 'admin') { location.href = '/portal'; return; }
-  load().catch(error => message(error.message));
+  load().then(() => setInterval(refreshWifiStatus, 2000)).catch(error => message(error.message));
 }).catch(() => location.href = '/login.html');
 </script>
 </html>
