@@ -8,6 +8,7 @@
 #include "config.h"
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include <time.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
@@ -308,6 +309,7 @@ static void handleAdminWiFi(AsyncWebServerRequest* request) {
     ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
     String ssid, password; loadStationCredentials(ssid, password);
     JsonDocument result; result["ssid"] = ssid; result["connected"] = stationConnected(); result["time_synced"] = timeSynchronized();
+    result["current_epoch"] = timeSynchronized() ? static_cast<uint32_t>(time(nullptr)) : 0;
     sendJson(request, 200, result);
 }
 static void handleAdminWiFiSave(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total) {

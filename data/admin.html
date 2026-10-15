@@ -26,8 +26,15 @@ input,button{padding:8px;margin:3px}button{background:#2563eb;color:white;border
   <table><thead><tr><th>Slot</th><th>Name</th><th>Credits</th><th>Stock</th><th>Actions</th></tr></thead><tbody id="products"></tbody></table>
 </section>
 <section>
-  <h2>Internet time setup</h2>
-  <p>The admin device syncs the machine clock when this page opens. Internet Wi-Fi can also keep time synchronized automatically.</p>
+  <h2>Machine date and time</h2>
+  <p>Current machine time (Philippine time): <strong id="machineClock">Not set</strong></p>
+  <form id="datetimeForm">
+    <input id="machineDateTime" type="datetime-local" step="60" required>
+    <button>Set machine date and time</button>
+  </form>
+  <p>Enter Philippine local time (UTC+8). Opening this page also syncs from the admin device clock.</p>
+  <h3>Automatic time sync over Wi-Fi</h3>
+  <p>Connect the machine to a router with internet to keep the clock synchronized automatically.</p>
   <form id="wifiForm">
     <input id="wifiSsid" placeholder="Wi-Fi name (SSID)" autocomplete="off" required>
     <input id="wifiPassword" type="password" placeholder="Wi-Fi password" autocomplete="new-password">
@@ -65,6 +72,7 @@ async function load() {
   ]);
   $('wifiSsid').value = wifi.ssid;
   showWifiStatus(wifi);
+  updateMachineClock(wifi.current_epoch);
   $('users').replaceChildren(...accounts.users.map(user => {
     const row = document.createElement('tr');
     cell(row, user.email); cell(row, user.role); cell(row, user.credits); cell(row, '');
@@ -83,18 +91,47 @@ async function load() {
 }
 function showWifiStatus(wifi) {
   $('wifiStatus').textContent = wifi.time_synced
-    ? (wifi.connected ? 'Clock synchronized; router Wi-Fi connected.' : 'Clock set from this admin device; router Wi-Fi is offline.')
+    ? (wifi.connected ? 'Clock synchronized; router Wi-Fi connected.' : 'Clock synchronized; router Wi-Fi offline.')
     : wifi.connected
       ? 'Wi-Fi connected; waiting for internet time sync…'
       : 'Not connected. Enter a router Wi-Fi with internet access.';
 }
 async function refreshWifiStatus() {
-  try { showWifiStatus(await api('/api/admin/wifi')); }
+  try {
+    const wifi = await api('/api/admin/wifi');
+    showWifiStatus(wifi);
+    updateMachineClock(wifi.current_epoch);
+  }
   catch (error) { $('wifiStatus').textContent = error.message; }
+}
+function updateMachineClock(epoch) {
+  if (!epoch) { $('machineClock').textContent = 'Not set'; return; }
+  const philippinesTime = new Date((epoch + 8 * 60 * 60) * 1000);
+  $('machineClock').textContent = philippinesTime.toISOString().replace('T', ' ').slice(0, 16);
+}
+function philippinesDateTimeToEpoch(value) {
+  const [date, clock] = value.split('T');
+  if (!date || !clock) return 0;
+  const [year, month, day] = date.split('-').map(Number);
+  const [hour, minute] = clock.split(':').map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day, hour - 8, minute) / 1000);
+}
+function machineEpochToInput(epoch) {
+  return new Date((epoch + 8 * 60 * 60) * 1000).toISOString().slice(0, 16);
 }
 async function syncMachineClock() {
   await api('/api/admin/time', {method:'POST', body:JSON.stringify({epoch:Math.floor(Date.now() / 1000)})});
 }
+$('datetimeForm').onsubmit = async event => {
+  event.preventDefault();
+  const epoch = philippinesDateTimeToEpoch($('machineDateTime').value);
+  if (!Number.isFinite(epoch) || epoch < 1700000000) { message('Enter a valid date and time.'); return; }
+  try {
+    await api('/api/admin/time', {method:'POST', body:JSON.stringify({epoch})});
+    await refreshWifiStatus();
+    message('Machine date and time updated.');
+  } catch (error) { message(error.message); }
+};
 async function run(action) {
   try { await action(); await load(); message('Saved.'); return true; }
   catch (error) { message(error.message); return false; }
@@ -156,6 +193,8 @@ else api('/api/me').then(async account => {
   try {
     await syncMachineClock();
     await load();
+    const wifi = await api('/api/admin/wifi');
+    if (wifi.current_epoch) $('machineDateTime').value = machineEpochToInput(wifi.current_epoch);
     setInterval(refreshWifiStatus, 2000);
   } catch (error) { message(error.message); }
 }).catch(() => location.href = '/login.html');
