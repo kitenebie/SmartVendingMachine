@@ -9,3 +9,4 @@ bool consumeValidatedBottle();
 bool startDispense(uint8_t slot);
 DispenseResult takeDispenseResult();
 uint8_t takeButtonPress();
+uint8_t blockedDropSensorMask();

@@ -14,6 +14,7 @@ button:disabled{opacity:.6}.credit{font-size:42px;font-weight:bold}li{margin:10p
 <h1>My recycling account</h1>
 <button id="logout">Log out</button>
 <p id="message" role="status"></p>
+<p id="machineStatus" role="status"></p>
 <section>
   <div>Credits</div><div class="credit" id="credits">—</div>
   <button id="insert">Insert bottle</button>
@@ -38,8 +39,14 @@ const $ = id => document.getElementById(id);
 let sessionTimer, purchasePending = false;
 function message(text) { $('message').textContent = text; }
 async function refresh() {
-  const [account, listing] = await Promise.all([api('/api/me'), api('/api/products')]);
+  const [account, listing, status] = await Promise.all([
+    api('/api/me'), api('/api/products'), api('/api/session/status')
+  ]);
   $('credits').textContent = account.user.credits;
+  const blocked = status.blocked_drop_sensors || [];
+  $('machineStatus').textContent = blocked.length
+    ? 'Vending paused: check drop sensor(s) ' + blocked.join(', ') + '.'
+    : 'Vending ready.';
   const rows = listing.products.map(product => {
     const row = document.createElement('li');
     row.append(document.createTextNode(product.name + ' — ' + product.credit_cost +
@@ -83,6 +90,10 @@ $('insert').onclick = async () => {
         const status = await api('/api/session/status');
         $('seconds').textContent = status.seconds_remaining;
         $('credits').textContent = status.credits;
+        const blocked = status.blocked_drop_sensors || [];
+        $('machineStatus').textContent = blocked.length
+          ? 'Vending paused: check drop sensor(s) ' + blocked.join(', ') + '.'
+          : 'Vending ready.';
         if (!status.locked) $('done').click();
       } catch (error) { message(error.message); }
     }, 1000);

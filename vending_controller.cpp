@@ -58,6 +58,16 @@ static bool anyDropDetected() {
     return digitalRead(p.ir1) == IR_ACTIVE_LEVEL || digitalRead(p.ir2) == IR_ACTIVE_LEVEL ||
            digitalRead(p.ir3) == IR_ACTIVE_LEVEL || digitalRead(p.ir4) == IR_ACTIVE_LEVEL;
 }
+uint8_t blockedDropSensorMask() {
+    xSemaphoreTake(hardwareMutex, portMAX_DELAY);
+    const PinConfig& p = getPinConfig();
+    const int sensors[4] = {p.ir1, p.ir2, p.ir3, p.ir4};
+    uint8_t mask = 0;
+    for (int i = 0; i < 4; ++i)
+        if (digitalRead(sensors[i]) == IR_ACTIVE_LEVEL) mask |= 1u << i;
+    xSemaphoreGive(hardwareMutex);
+    return mask;
+}
 
 bool initVendingMachine() {
     hardwareMutex = xSemaphoreCreateMutex();

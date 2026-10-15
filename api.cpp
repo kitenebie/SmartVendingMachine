@@ -248,6 +248,9 @@ static void handleStatus(AsyncWebServerRequest* request) {
     result["user_id"] = active.userId;
     result["seconds_remaining"] = remaining > 0 ? (remaining + 999) / 1000 : 0;
     result["credits"] = user->credits;
+    uint8_t blockedSensors = blockedDropSensorMask();
+    JsonArray blocked = result["blocked_drop_sensors"].to<JsonArray>();
+    for (int i = 0; i < 4; ++i) if (blockedSensors & (1u << i)) blocked.add(i + 1);
     result["dispense"] = lastResultUser == user->id ? lastResult : "";
     sendJson(request, 200, result);
 }
@@ -262,7 +265,18 @@ static void handleRedeem(AsyncWebServerRequest* request, uint8_t* data, size_t l
     String date; int dailyDispenses;
     if (!getDailyDispenseCount(*user, date, dailyDispenses)) { sendError(request, 503, "clock_not_synced"); return; }
     if (dailyDispenses >= DAILY_DISPENSE_LIMIT) { sendError(request, 429, "daily_dispense_limit_reached"); return; }
-    if (!beginRedemption(*user, *product)) { sendError(request, 409, "machine_busy_or_sensor_blocked"); return; }
+    if (pending.slot || bottleCreditsWaiting || fileExists(JOURNAL_FILE)) {
+        sendError(request, 409, "machine_busy"); return;
+    }
+    uint8_t blockedSensors = blockedDropSensorMask();
+    if (blockedSensors) {
+        JsonDocument result;
+        result["error"] = "drop_sensor_blocked";
+        JsonArray sensors = result["sensors"].to<JsonArray>();
+        for (int i = 0; i < 4; ++i) if (blockedSensors & (1u << i)) sensors.add(i + 1);
+        sendJson(request, 409, result); return;
+    }
+    if (!beginRedemption(*user, *product)) { sendError(request, 409, "machine_unavailable"); return; }
     JsonDocument result; result["status"] = "dispensing"; sendJson(request, 202, result);
 }
 static void handleAdminUsers(AsyncWebServerRequest* request) {
@@ -342,19 +356,31 @@ void updateReverseVending() {
         if (!commitDelivered()) Serial.println("[Vend] Retrying delivery record write.");
     }
     uint8_t pressed = takeButtonPress();
-    if (pressed && active.locked && !pending.slot) {
+    if (pressed && !active.locked) {
+        displayMessage("SIGN IN ON PORTAL", "THEN INSERT BOTTLE");
+    } else if (pressed && pending.slot) {
+        displayMessage("VENDING IN PROGRESS", "PLEASE WAIT");
+    } else if (pressed && active.locked) {
+        uint8_t blockedSensors = blockedDropSensorMask();
+        if (blockedSensors) {
+            String sensors = "IR blocked:";
+            for (int i = 0; i < 4; ++i) if (blockedSensors & (1u << i)) sensors += " " + String(i + 1);
+            displayMessage("CHECK DROP SENSOR", sensors);
+        }
         User* user = findUserById(active.userId);
         Product* product = nullptr;
         for (const Product& item : getProducts()) if (item.slot == pressed) product = getProductById(item.id);
-        if (user && product) {
+        if (!blockedSensors && user && product) {
             if (product->stock < 1) displayEmpty(pressed, product->name);
             else if (product->creditCost > user->credits) displayNoCredit(product->creditCost, user->credits);
             else {
                 String date; int dailyDispenses;
                 if (!getDailyDispenseCount(*user, date, dailyDispenses)) displayMessage("CLOCK NOT READY", "Connect to Wi-Fi");
                 else if (dailyDispenses >= DAILY_DISPENSE_LIMIT) displayMessage("DAILY LIMIT", "4 ITEMS TODAY");
-                else beginRedemption(*user, *product);
+                else if (!beginRedemption(*user, *product)) displayMessage("VENDING UNAVAILABLE", "PLEASE TRY AGAIN");
             }
+        } else if (!blockedSensors && (!user || !product)) {
+            displayMessage("PRODUCT UNAVAILABLE", "CHECK SLOT SETUP");
         }
     }
 }
