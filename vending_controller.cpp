@@ -7,7 +7,7 @@
 
 static SemaphoreHandle_t hardwareMutex;
 static bool collectionEnabled = false, bottleInFlight = false, bottleReady = false, doorOpen = false;
-static uint32_t validationStarted = 0, doorOpenedAt = 0, dispenseStartedAt = 0;
+static uint32_t validationStarted = 0, dispenseStartedAt = 0;
 static uint8_t dispensingSlot = 0, buttonPress = 0;
 static uint8_t buttonRaw[4], buttonStable[4];
 static uint32_t buttonChangedAt[4];
@@ -45,7 +45,6 @@ static void door(bool open) {
     if (doorOpen == open) return;
     writePwm(getPinConfig().doorServo, angleDuty(open ? DOOR_OPEN_ANGLE : DOOR_CLOSED_ANGLE));
     doorOpen = open;
-    if (open) doorOpenedAt = millis();
 }
 static void stopDispensers() {
     const PinConfig& p = getPinConfig();
@@ -155,10 +154,7 @@ void updateVendingMachine() {
                 bottleInFlight = true; bottleReady = true; validationStarted = 0; door(true);
             }
         } else if (!bottleInFlight) validationStarted = 0;
-        if (bottleInFlight && !sensorA && !sensorB &&
-            now - doorOpenedAt >= DOOR_MIN_OPEN_TIME_MS) {
-            bottleInFlight = false; door(false);
-        }
+        if (bottleInFlight && !sensorA && !sensorB) bottleInFlight = false;
     }
     xSemaphoreGive(hardwareMutex);
 }

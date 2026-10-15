@@ -54,7 +54,6 @@
 #define PIN_DOOR_SERVO          4    // Door servo PWM signal — GPIO 4
 #define DOOR_CLOSED_ANGLE       0    // Adjust these two angles to match the door's mounting direction
 #define DOOR_OPEN_ANGLE         90
-#define DOOR_MIN_OPEN_TIME_MS   1000 // Keep the door open long enough for the validated bottle to pass
 
 // ---- 20x4 I2C LCD Display (PCF8574) -----------------------
 #define PIN_LCD_SDA     23     // I2C Data (SDA) — board pin P23 / GPIO 23

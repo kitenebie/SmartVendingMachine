@@ -226,7 +226,7 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 ## 8. Testing & Calibration Procedures
 
 1. **Serial Monitor Check:** Buksan ang 115200 baud Serial Monitor. Siguraduhing lumabas ang `[LCD] Found I2C LCD at address 0x27` (o `0x3F`).
-2. **Bottle Detection Test:** Kapag sabay na naka-detect ang Sensor A at B nang 200 ms, bubukas ang door at magbabago ang Line 2 ng LCD sa `CREDITS: 01 BOTTLE`.
+2. **Bottle Detection Test:** Sa standby at pagsisimula ng session, sarado ang door. Kapag sabay na naka-detect ang Sensor A at B nang 200 ms, tataas ang credit at bubukas ang door. Magtatapos o mag-timeout ang session bago muling magsara ang door.
 3. **Dispense & Drop Test:** Pindutin ang Button 1. Magdi-display ang LCD ng `DISPENSING...` at iikot ang Servo 1. Kapag may object na na-detect ang kahit alin sa IR Sensor 1–4, titigil ang lahat ng servos at magdi-display ang LCD ng `SUCCESSFUL!`.
 4. **Safety Timeout Test:** Subukang mag-dispense kapag walang item. Pagkaraan ng 5 segundo, titigil ang servo at magdi-display ng `DISPENSE ERROR` nang walang bawas sa credits o stock.
 
