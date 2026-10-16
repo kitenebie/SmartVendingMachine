@@ -88,7 +88,7 @@ Ang `GET /api/products` response ay kasama rin ang `machineCredits` at `machineS
 
 ## 5. Paano nakakakuha ng credits ang customer
 
-Ang credits ay hindi awtomatikong galing sa web dashboard. Sa session, kailangang sabay na active ang Sensor A at Sensor B nang hindi bababa sa `BOTTLE_VALIDATION_TIME_MS` (default: 200 ms) para magdagdag ng credit at magbukas ng door servo. Awtomatikong magsasara ang door kapag parehong clear na ang dalawang sensor, o kapag natapos/mag-timeout ang session. Naka-lock muna ang bottle detector hanggang parehong maging clear ang dalawang sensor para maiwasan ang double-count.
+Ang credits ay hindi awtomatikong galing sa web dashboard. Sa session, kailangang sabay na active ang Sensor A at Sensor B nang hindi bababa sa `BOTTLE_VALIDATION_TIME_MS` (default: 200 ms) para magdagdag ng credit at magbukas ng door servo. Magsasara ang door kapag parehong clear na ang dalawang sensor, o kapag natapos o nag-timeout ang session. Isang beses lang mabibilang ang bote hanggang mag-clear ang parehong sensor.
 
 Sa idle screen ng 20x4 LCD, makikita ang credits at pagpipilian ng products.
 

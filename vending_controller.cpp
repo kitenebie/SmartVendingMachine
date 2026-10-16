@@ -164,7 +164,7 @@ void updateVendingMachine() {
                 bottleInFlight = true; bottleReady = true; validationStarted = 0; door(true);
             }
         } else if (!bottleInFlight) validationStarted = 0;
-        if (!sensorA && !sensorB) {
+        if (bottleInFlight && !sensorA && !sensorB) {
             bottleInFlight = false;
             door(false);
         }
