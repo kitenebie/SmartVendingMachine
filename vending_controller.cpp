@@ -7,6 +7,8 @@
 
 static SemaphoreHandle_t hardwareMutex;
 static bool collectionEnabled = false, bottleInFlight = false, bottleReady = false, doorOpen = false;
+// GPIO 34/35 can float active; wait for both sensors to clear before accepting a bottle.
+static bool collectionArmed = false;
 static uint32_t validationStarted = 0, dispenseStartedAt = 0;
 static uint8_t dispensingSlot = 0, buttonPress = 0;
 static uint8_t buttonRaw[4], buttonStable[4];
@@ -95,8 +97,13 @@ bool initVendingMachine() {
 void setBottleCollectionEnabled(bool enabled) {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
     collectionEnabled = enabled;
-    if (!enabled) {
+    if (enabled) {
+        const PinConfig& p = getPinConfig();
+        collectionArmed = digitalRead(p.sensorA) != BOTTLE_SENSOR_ACTIVE_LEVEL &&
+                          digitalRead(p.sensorB) != BOTTLE_SENSOR_ACTIVE_LEVEL;
+    } else {
         validationStarted = 0; bottleInFlight = false; bottleReady = false;
+        collectionArmed = false;
         door(false);
     }
     xSemaphoreGive(hardwareMutex);
@@ -158,10 +165,12 @@ void updateVendingMachine() {
     if (collectionEnabled) {
         bool sensorA = digitalRead(p.sensorA) == BOTTLE_SENSOR_ACTIVE_LEVEL;
         bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_ACTIVE_LEVEL;
-        if (!bottleInFlight && sensorA && sensorB) {
+        if (!bottleInFlight && !sensorA && !sensorB) collectionArmed = true;
+        if (!bottleInFlight && collectionArmed && sensorA && sensorB) {
             if (!validationStarted) validationStarted = now;
             else if (now - validationStarted >= BOTTLE_VALIDATION_TIME_MS) {
-                bottleInFlight = true; bottleReady = true; validationStarted = 0; door(true);
+                bottleInFlight = true; bottleReady = true; collectionArmed = false;
+                validationStarted = 0; door(true);
             }
         } else if (!bottleInFlight) validationStarted = 0;
         if (bottleInFlight && !sensorA && !sensorB) {
