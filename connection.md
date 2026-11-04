@@ -4,6 +4,12 @@
 
 This document provides the complete hardware wiring diagram, pin mapping, power isolation rules, and step-by-step procedures to build and connect the **ESP32 38-Pin Smart Vending Machine (4 Products Edition)** with a **20x4 I2C LCD Display (PCF8574 Module)** and integrated **Web Inventory Management**.
 
+## Component photo reference
+
+![Photorealistic visual reference of an ESP32, buzzer, and proximity sensors C and D](diagrams/components-reference.png)
+
+AI-generated visual reference; actual modules may look different. Use the wiring diagram below for exact pin connections.
+
 ## Bottle sensors and buzzer pin diagram
 
 ![ESP32 DevKit wiring for Sensors A–D and the 3-pin active buzzer](diagrams/sensor-buzzer-wiring.png)
