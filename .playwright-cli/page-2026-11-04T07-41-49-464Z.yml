@@ -1,0 +1,104 @@
+- generic [active] [ref=f17e1]:
+  - banner [ref=f17e2]:
+    - generic [ref=f17e3]:
+      - generic [aria-hidden] [ref=f17e4]: R
+      - generic [ref=f17e5]: Reverse Vending
+    - generic [ref=f17e6]: Sample data · preview only
+  - navigation "Preview screen" [ref=f17e7]:
+    - button "Admin" [pressed] [ref=f17e8] [cursor=pointer]
+    - button "Client login" [ref=f17e9] [cursor=pointer]
+    - button "User portal" [ref=f17e10] [cursor=pointer]
+  - main [ref=f17e11]:
+    - generic [ref=f17e12]:
+      - navigation "Admin sections" [ref=f17e13]:
+        - link "Users" [ref=f17e14] [cursor=pointer]:
+          - /url: "#preview-users"
+        - link "Products" [ref=f17e15] [cursor=pointer]:
+          - /url: "#preview-products"
+        - link "Bottle storage" [ref=f17e16] [cursor=pointer]:
+          - /url: "#preview-storage"
+        - link "Settings" [ref=f17e17] [cursor=pointer]:
+          - /url: "#preview-settings"
+      - generic [ref=f17e18]:
+        - heading "Machine administration" [level=1] [ref=f17e19]
+        - paragraph [ref=f17e20]: Manage products, rewards, and machine settings.
+        - status [ref=f17e21]
+        - generic [ref=f17e22]:
+          - generic [ref=f17e23]:
+            - heading "Bottle storage" [level=2] [ref=f17e24]
+            - generic [ref=f17e25]: 42 / 100 bottles
+            - paragraph [ref=f17e28]: A buzzer sounds when storage reaches capacity.
+            - button "Reset count to 0" [ref=f17e29] [cursor=pointer]
+          - generic [ref=f17e30]:
+            - heading "Machine settings" [level=2] [ref=f17e31]
+            - generic [ref=f17e32]:
+              - generic [ref=f17e33]:
+                - generic [ref=f17e34]: Machine date and time
+                - textbox "Machine date and time" [ref=f17e35]: 2026-11-04T10:30
+              - generic [ref=f17e36]:
+                - generic [ref=f17e37]: Wi-Fi name (SSID)
+                - textbox "Wi-Fi name (SSID)" [ref=f17e38]: ESP32-Inventory
+              - generic [ref=f17e39]:
+                - generic [ref=f17e40]: Wi-Fi password
+                - textbox "Wi-Fi password" [ref=f17e41]: samplepass
+              - button "Save settings" [ref=f17e42] [cursor=pointer]
+          - generic [ref=f17e43]:
+            - heading "Products · four machine slots" [level=2] [ref=f17e44]
+            - table [ref=f17e46]:
+              - rowgroup [ref=f17e47]:
+                - row [ref=f17e48]:
+                  - columnheader "Slot" [ref=f17e49]
+                  - columnheader "Product" [ref=f17e50]
+                  - columnheader "Credits" [ref=f17e51]
+                  - columnheader "Stock" [ref=f17e52]
+              - rowgroup [ref=f17e53]:
+                - row [ref=f17e54]:
+                  - cell "1" [ref=f17e55]
+                  - cell [ref=f17e56]:
+                    - img "Mini Tissue" [ref=f17e57]
+                    - text: Mini Tissue
+                  - cell "10" [ref=f17e58]
+                  - cell "20" [ref=f17e59]
+                - row [ref=f17e60]:
+                  - cell "2" [ref=f17e61]
+                  - cell [ref=f17e62]:
+                    - img "Mini Wipes" [ref=f17e63]
+                    - text: Mini Wipes
+                  - cell "5" [ref=f17e64]
+                  - cell "20" [ref=f17e65]
+                - row [ref=f17e66]:
+                  - cell "3" [ref=f17e67]
+                  - cell [ref=f17e68]:
+                    - img "Mini Alcohol Bottle" [ref=f17e69]
+                    - text: Mini Alcohol Bottle
+                  - cell "3" [ref=f17e70]
+                  - cell "20" [ref=f17e71]
+                - row [ref=f17e72]:
+                  - cell "4" [ref=f17e73]
+                  - cell [ref=f17e74]:
+                    - img "Band Aid" [ref=f17e75]
+                    - text: Band Aid
+                  - cell "8" [ref=f17e76]
+                  - cell "20" [ref=f17e77]
+          - generic [ref=f17e78]:
+            - heading "Users and credits" [level=2] [ref=f17e79]
+            - table [ref=f17e81]:
+              - rowgroup [ref=f17e82]:
+                - row [ref=f17e83]:
+                  - columnheader "Username" [ref=f17e84]
+                  - columnheader "Role" [ref=f17e85]
+                  - columnheader "Credits" [ref=f17e86]
+              - rowgroup [ref=f17e87]:
+                - row [ref=f17e88]:
+                  - cell "juan" [ref=f17e89]
+                  - cell "User" [ref=f17e90]
+                  - cell "30" [ref=f17e91]
+                - row [ref=f17e92]:
+                  - cell "maria" [ref=f17e93]
+                  - cell "User" [ref=f17e94]
+                  - cell "12" [ref=f17e95]
+                - row [ref=f17e96]:
+                  - cell "admin" [ref=f17e97]
+                  - cell "Admin" [ref=f17e98]
+                  - cell "—" [ref=f17e99]
+    - paragraph [ref=f17e100]: Controls change preview data in this page only; no values are saved to the machine.

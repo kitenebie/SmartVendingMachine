@@ -1,0 +1,21 @@
+{
+  "0": "auth.cpp",
+  "1": "display_manager.cpp",
+  "2": "api.cpp",
+  "3": "Paano Gumagana ang Vending Machine: Mula Web Server Hanggang Dispensing",
+  "4": "ESP32 Vending Machine Plan",
+  "5": "PendingDispense",
+  "6": "products.cpp",
+  "7": "🛠️ Complete Wiring & Assembly Guide — ESP32 Smart Vending Machine (4 Products + 20x4 I2C LCD)",
+  "8": "wifi_manager.cpp",
+  "9": "35. Development Phases",
+  "10": "30. Module Responsibilities",
+  "11": "3. Hardware Components",
+  "12": "Ponytail, lazy senior dev mode",
+  "13": "Ponytail",
+  "14": "auth.js",
+  "15": "4. Bottle Credit Detection",
+  "16": "13. Credit Deduction Rule",
+  "17": "15. Dispensing Timeout",
+  "18": "24. Sensor Debouncing"
+}

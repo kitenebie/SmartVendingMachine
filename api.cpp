@@ -93,7 +93,7 @@ static void emptyBody(AsyncWebServerRequest* request) {
 static void userJson(JsonObject result, const User& user) {
     result["id"] = user.id; result["firstname"] = user.firstname;
     result["middlename"] = user.middlename; result["lastname"] = user.lastname;
-    result["email"] = user.email; result["role"] = user.role;
+    result["username"] = user.username; result["role"] = user.role;
     result["credits"] = user.credits; result["last_credit_activity"] = user.lastCreditActivity;
     String date; int dailyDispenses;
     if (getDailyDispenseCount(user, date, dailyDispenses)) result["daily_dispenses"] = dailyDispenses;
@@ -175,15 +175,15 @@ static bool beginRedemption(User& user, Product& product, bool physicalButton = 
 static void handleRegister(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total) {
     ApiLock lock; JsonDocument doc; if (!readBody(request, data, len, index, total, doc)) return;
     String error, firstname = doc["firstname"] | "", middlename = doc["middlename"] | "";
-    String lastname = doc["lastname"] | "", email = doc["email"] | "", password = doc["password"] | "";
-    firstname.trim(); middlename.trim(); lastname.trim(); email.trim(); email.toLowerCase();
-    if (!registerUser(firstname, middlename, lastname, email, password, error)) { sendError(request, 400, error); return; }
+    String lastname = doc["lastname"] | "", username = doc["username"] | "", password = doc["password"] | "";
+    firstname.trim(); middlename.trim(); lastname.trim(); username.trim();
+    if (!registerUser(firstname, middlename, lastname, username, password, error)) { sendError(request, 400, error); return; }
     JsonDocument result; result["success"] = true; sendJson(request, 201, result);
 }
 static void handleLogin(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total) {
     ApiLock lock; JsonDocument doc; if (!readBody(request, data, len, index, total, doc)) return;
-    String email = doc["email"] | "", password = doc["password"] | ""; email.trim(); email.toLowerCase();
-    User* user = findUserByEmail(email);
+    String username = doc["username"] | "", password = doc["password"] | ""; username.trim();
+    User* user = findUserByUsername(username);
     if (!user || !verifyUserPassword(*user, password)) { sendError(request, 401, "invalid_credentials"); return; }
     JsonDocument result; result["token"] = createSession(user->id);
     userJson(result["user"].to<JsonObject>(), *user); sendJson(request, 200, result);
@@ -478,12 +478,18 @@ bool setupAPI(AsyncWebServer& server) {
     server.on("/api/admin/log", HTTP_GET, handleAdminLog);
     server.on("/api/admin/credits", HTTP_POST, emptyBody, nullptr, handleAdminCredits);
     server.on("/api/admin/storage", HTTP_GET, handleAdminStorage);
-    server.on("/api/admin/storage/reset", HTTP_POST, emptyBody, nullptr, handleAdminStorageReset);
+    server.on("/api/admin/storage/reset", HTTP_POST, handleAdminStorageReset);
     server.on("/api/admin/wifi", HTTP_GET, handleAdminWiFi);
     server.on("/api/admin/wifi", HTTP_POST, emptyBody, nullptr, handleAdminWiFiSave);
     server.on("/api/admin/time", HTTP_POST, emptyBody, nullptr, handleAdminTimeSync);
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/login.html"); });
     server.on("/login.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/login.html", "text/html"); });
+    server.on("/test.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/test.html", "text/html"); });
+    server.on("/admin-test.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/admin-test.html", "text/html"); });
+    server.on("/login-test.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/login-test.html", "text/html"); });
+    server.on("/product-sprite.png", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/product-sprite.png", "image/png"); });
+    server.on("/eco-background.jpg", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/eco-background.jpg", "image/jpeg"); });
+    server.on("/login-background.jpg", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/login-background.jpg", "image/jpeg"); });
     server.on("/portal", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/portal.html", "text/html"); });
     server.on("/admin", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/admin.html", "text/html"); });
     server.on("/js/auth.js", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/js/auth.js", "text/javascript"); });

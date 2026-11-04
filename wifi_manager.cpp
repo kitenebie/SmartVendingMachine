@@ -7,27 +7,8 @@
 #include "wifi_manager.h"
 #include <WiFi.h>
 #include <Preferences.h>
-#include <esp_random.h>
 #include <time.h>
 #include <sys/time.h>
-
-bool loadAccessPointPassword(String& password) {
-    Preferences prefs;
-    if (!prefs.begin("vending-net", false)) return false;
-    password = prefs.getString("password", "");
-    if (password.length() < 8) {
-        char generated[17];
-        snprintf(generated, sizeof(generated), "%08lx%08lx",
-                 (unsigned long)esp_random(), (unsigned long)esp_random());
-        password = generated;
-        if (prefs.putString("password", password) == 0) {
-            prefs.end();
-            return false;
-        }
-    }
-    prefs.end();
-    return true;
-}
 
 bool loadStationCredentials(String& ssid, String& password) {
     Preferences prefs;

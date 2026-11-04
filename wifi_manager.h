@@ -6,8 +6,6 @@
 // ============================================================
 #include <Arduino.h>
 
-/** Read or create a unique per-device WiFi password in NVS. */
-bool loadAccessPointPassword(String& password);
 bool loadStationCredentials(String& ssid, String& password);
 bool saveStationCredentials(const String& ssid, const String& password);
 void connectToStation(const String& ssid, const String& password);

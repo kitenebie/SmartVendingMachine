@@ -49,10 +49,10 @@ bool loadProducts() {
     }
     if (json.isEmpty()) {
         if (fileExists(PRODUCTS_FILE)) return false;
-        products = {{productId(), "Rice 1kg", 10, 20, 1},
-                    {productId(), "Juice", 5, 20, 2},
-                    {productId(), "Water", 3, 20, 3},
-                    {productId(), "Snack", 8, 20, 4}};
+        products = {{productId(), "Mini Tissue", 10, 20, 1},
+                    {productId(), "Mini Wipes", 5, 20, 2},
+                    {productId(), "Mini Alcohol Bottle", 3, 20, 3},
+                    {productId(), "Band Aid", 8, 20, 4}};
         return saveProducts();
     }
     JsonDocument doc;

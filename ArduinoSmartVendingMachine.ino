@@ -80,9 +80,7 @@ void setup() {
 
     // 6. Start ESP32 WiFi Access Point (Hotspot)
     Serial.println("[Init] Starting WiFi Access Point...");
-    String accessPointPassword;
-    if (!loadAccessPointPassword(accessPointPassword) ||
-        !startAccessPoint(AP_SSID, accessPointPassword.c_str(), AP_CHANNEL, false, AP_MAX_CONN)) {
+    if (!startAccessPoint(AP_SSID, "", AP_CHANNEL, false, AP_MAX_CONN)) {
         Serial.println("[FATAL] Access point could not start. Halting.");
         while (true) delay(1000);
     }
@@ -102,9 +100,8 @@ void setup() {
     Serial.println(" >>> VENDING SYSTEM READY & ONLINE! <<<");
     Serial.println("----------------------------------------");
     Serial.printf(" Hotspot SSID    : %s\n", AP_SSID);
-    Serial.printf(" Hotspot Pass    : %s\n", accessPointPassword.c_str());
     Serial.printf(" Web Dashboard   : http://%s\n", getLocalIP().c_str());
-    Serial.println(" Admin username  : admin@local");
+    Serial.println(" Admin username  : admin");
     Serial.println("========================================");
     Serial.println();
 }

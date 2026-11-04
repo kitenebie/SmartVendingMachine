@@ -4,47 +4,55 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Reverse Vending</title>
 <style>
-body{font:16px system-ui;max-width:420px;margin:8vh auto;padding:24px;background:#eef2ff}
-main{background:white;padding:28px;border-radius:14px;box-shadow:0 5px 25px #0001}
-input,button{width:100%;padding:11px;margin:6px 0;box-sizing:border-box}
-button{background:#2563eb;color:white;border:0;border-radius:6px}
-.row{display:flex;gap:8px}.row>*{flex:1}
-#register{display:none}#message{color:#b91c1c}
+:root{color-scheme:light;--ink:#173a28;--muted:#536457;--green:#397d36;--green-dark:#245b2b;--sage:#e8f0df;--paper:#f1f6ef;--line:#d8e1d1;--white:#fffefa}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:clamp(18px,5vw,64px);display:grid;place-items:center;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,sans-serif}h1{font-size:clamp(2rem,4vw,2.8rem);line-height:1.12;margin:0 0 12px}p{margin-top:0}button,input{font:inherit}button{min-height:48px;padding:11px 16px;border:1px solid transparent;border-radius:9px;background:var(--green);color:white;font-weight:750;cursor:pointer}button:hover{background:var(--green-dark)}button:focus-visible,input:focus-visible{outline:3px solid #b36c0c;outline-offset:2px}.secondary{background:var(--white);border-color:var(--line);color:var(--ink)}.secondary:hover{background:var(--sage);color:var(--ink)}
+.login-layout{width:min(100%,980px);min-height:560px;display:grid;grid-template-columns:1fr minmax(340px,.85fr);overflow:hidden;border:1px solid var(--line);border-radius:22px;background:var(--white);box-shadow:0 18px 45px #183a2818}.welcome{padding:clamp(28px,6vw,70px);display:flex;flex-direction:column;justify-content:center;background:var(--sage)}.brand{display:flex;align-items:center;gap:12px;margin-bottom:56px;font-weight:800}.brand-mark{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:var(--green);color:white;font-weight:900}.welcome-copy{max-width:430px}.welcome-copy p{color:var(--muted)}.welcome-art{height:120px;margin-top:36px;display:flex;align-items:end;gap:12px}.bottle{width:35px;border:3px solid #6e9865;border-radius:14px 14px 8px 8px;background:#d6e6c8}.bottle:nth-child(1){height:70px}.bottle:nth-child(2){height:105px}.bottle:nth-child(3){height:84px}.login-panel{padding:clamp(25px,5vw,52px);display:flex;flex-direction:column;justify-content:center}.login-panel h2{font-size:1.55rem;margin-bottom:8px}.subhead{color:var(--muted);margin-bottom:24px}.form-stack{display:grid;gap:16px}.field{display:grid;gap:6px}.field label{font-size:.9rem;font-weight:700}.field input{width:100%;min-height:48px;padding:10px 12px;border:1px solid #aab9ab;border-radius:8px;background:white;color:var(--ink)}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}#register{display:none}#message{min-height:24px;color:#8a2d24}#message.success{color:var(--green-dark)}.form-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--muted)}.form-divider:before,.form-divider:after{content:"";height:1px;flex:1;background:var(--line)}
+@media(max-width:700px){body{padding:16px}.login-layout{grid-template-columns:1fr;min-height:0;max-width:500px}.welcome{padding:24px 26px}.brand{margin-bottom:24px}.welcome-art{display:none}.welcome-copy p{margin-bottom:0}.login-panel{padding:26px}}
+@media(max-width:380px){.row{grid-template-columns:1fr}}
+body{background-image:url('login-background.jpg');background-position:center top;background-size:cover;background-attachment:fixed}
+.login-layout{width:min(100%,410px);min-height:0;display:block;overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none}.welcome{padding:8px 12px 20px;display:block;text-align:center;background:transparent}.brand{justify-content:center;gap:14px;margin:0 0 5px;font-size:1.2rem}.brand-mark{width:58px;height:58px;border-radius:50%;background:transparent;color:var(--green);font-size:48px;line-height:1}.welcome-copy h1{margin:0;font-size:1.3rem;line-height:1.2}.welcome-copy p{margin:3px 0 0;color:var(--ink)}.login-panel{padding:26px 28px;border:1px solid #e5decf;border-radius:18px;background:#fffdf9ef;box-shadow:0 14px 34px #473a2220}.login-panel h2{font-size:1.35rem;margin-bottom:14px}.form-stack{gap:14px}.field{gap:6px}.field label{font-size:.92rem;color:#111b13}.input-wrap{position:relative;display:flex;align-items:center}.field-icon{position:absolute;left:13px;width:20px;height:20px;color:#516453;pointer-events:none}.field-icon svg,.eye-button svg,.action-icon svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.field input{padding:10px 42px;min-height:46px;border-color:#bcbcaf;border-radius:9px}.eye-button{position:absolute;right:4px;width:38px;min-height:38px;height:38px;padding:8px;background:transparent;color:#536457;border:0}.eye-button:hover{background:var(--sage);color:var(--ink)}.form-stack>button:not(.eye-button){width:100%;margin-top:3px}.login-submit{display:flex;align-items:center;justify-content:center;gap:10px}.action-icon{width:19px;height:19px}.form-divider{margin:16px 0}.login-panel>#toggle{width:100%;min-height:46px;border-color:var(--green);color:var(--green-dark)}.login-panel>#toggle:hover{background:var(--sage)}
 </style>
-<main>
-  <h1>Reverse Vending</h1>
-  <p id="message" role="status"></p>
-  <form id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username" required>
-    <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
-    <button>Log in</button>
-  </form>
-  <form id="register">
-    <div class="row">
-      <input id="firstname" placeholder="First name" required>
-      <input id="lastname" placeholder="Last name" required>
-    </div>
-    <input id="middlename" placeholder="Middle name">
-    <input id="regEmail" type="email" placeholder="Email" required>
-    <input id="regPassword" type="password" placeholder="Password (8+ chars)" minlength="8" required>
-    <button>Create account</button>
-  </form>
-  <p><button id="toggle" type="button">Create an account</button></p>
+<body><main class="login-layout">
+  <section class="welcome"><div class="brand"><span class="brand-mark" aria-hidden="true">♻</span><span>Reverse-Vending Machine</span></div><div class="welcome-copy"><h1>Client Login</h1></div></section>
+  <section class="login-panel"><h2 id="formTitle">Log In to Your Account</h2><p id="formHint" class="subhead" hidden>Sign in to your recycling account.</p><p id="message" role="status" aria-live="polite"></p>
+    <form id="login" class="form-stack">
+      <div class="field"><label for="username">Username</label><div class="input-wrap"><span class="field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20c.6-3.3 3.3-5.5 7.5-5.5s6.9 2.2 7.5 5.5"/></svg></span><input id="username" autocomplete="username" placeholder="Enter username" required></div></div>
+      <div class="field"><label for="password">Password</label><div class="input-wrap"><span class="field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><input id="password" type="password" autocomplete="current-password" placeholder="Enter password" required><button class="eye-button" type="button" data-toggle-password="password" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.7"/></svg></button></div></div>
+      <button class="login-submit"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/><path d="M10 8l4 4-4 4M14 12H3"/></svg></span>Log In</button>
+    </form>
+    <form id="register" class="form-stack">
+      <div class="row"><div class="field"><label for="firstname">First name</label><input id="firstname" autocomplete="given-name" required></div><div class="field"><label for="lastname">Last name</label><input id="lastname" autocomplete="family-name" required></div></div>
+      <div class="field"><label for="middlename">Middle name (optional)</label><input id="middlename" autocomplete="additional-name"></div>
+      <div class="field"><label for="regUsername">Username</label><input id="regUsername" maxlength="32" autocomplete="username" required></div>
+      <div class="field"><label for="regPassword">Password</label><div class="input-wrap"><span class="field-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><input id="regPassword" type="password" minlength="8" autocomplete="new-password" required><button class="eye-button" type="button" data-toggle-password="regPassword" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.7"/></svg></button></div></div>
+      <button>Create account</button>
+    </form>
+    <div class="form-divider">or</div><button id="toggle" class="secondary" type="button"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3.5"/><path d="M2.5 20c.5-3.5 2.6-5.5 6.5-5.5 2.1 0 3.7.6 4.8 1.8M18 8v8M14 12h8"/></svg></span> Create Account</button>
+  </section>
 </main>
 <script src="/js/auth.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 function showRegister(show) {
-  $('register').style.display = show ? 'block' : 'none';
-  $('login').style.display = show ? 'none' : 'block';
+  $('register').style.display = show ? 'grid' : 'none';
+  $('login').style.display = show ? 'none' : 'grid';
   $('toggle').textContent = show ? 'Back to login' : 'Create an account';
+  $('formTitle').textContent = show ? 'Create your account' : 'Welcome back';
+  $('formHint').textContent = show ? 'Set up a username and password to get started.' : 'Sign in to your recycling account.';
+  $('message').classList.remove('success');
 }
 showRegister(false);
 $('toggle').onclick = () => { showRegister($('register').style.display === 'none'); $('message').textContent = ''; };
+document.querySelectorAll('[data-toggle-password]').forEach(button => button.onclick = () => {
+  const input = $(button.dataset.togglePassword), visible = input.type === 'password';
+  input.type = visible ? 'text' : 'password';
+  button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+  button.setAttribute('aria-pressed', String(visible));
+});
 $('login').onsubmit = async event => {
   event.preventDefault();
   try {
-    const result = await api('/api/login', {method:'POST', body:JSON.stringify({email:$('email').value, password:$('password').value})});
+    const result = await api('/api/login', {method:'POST', body:JSON.stringify({username:$('username').value, password:$('password').value})});
     sessionStorage.setItem('rvm_token', result.token);
     location.href = result.user.role === 'admin' ? '/admin' : '/portal';
   } catch (error) { $('message').textContent = error.message; }
@@ -54,12 +62,13 @@ $('register').onsubmit = async event => {
   try {
     await api('/api/register', {method:'POST', body:JSON.stringify({
       firstname:$('firstname').value, middlename:$('middlename').value,
-      lastname:$('lastname').value, email:$('regEmail').value, password:$('regPassword').value
+      lastname:$('lastname').value, username:$('regUsername').value, password:$('regPassword').value
     })});
     showRegister(false);
-    $('message').style.color = 'green';
+    $('message').classList.add('success');
     $('message').textContent = 'Account created. Log in to continue.';
   } catch (error) { $('message').textContent = error.message; }
 };
 </script>
+</body>
 </html>

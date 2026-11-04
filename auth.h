@@ -3,15 +3,15 @@
 #include <vector>
 
 struct User {
-    String id, firstname, middlename, lastname, email, passwordHash, salt, role, lastCreditActivity, createdAt, dailyDispenseDate;
+    String id, firstname, middlename, lastname, username, passwordHash, salt, role, lastCreditActivity, createdAt, dailyDispenseDate;
     int credits = 0, dailyDispenses = 0;
     uint32_t lastCreditActivityAt = 0;
 };
 
 bool initUsers();
 bool registerUser(const String& firstname, const String& middlename, const String& lastname,
-                  const String& email, const String& password, String& error);
-User* findUserByEmail(const String& email);
+                  const String& username, const String& password, String& error);
+User* findUserByUsername(const String& username);
 User* findUserById(const String& id);
 const std::vector<User>& getUsers();
 bool changeUserPassword(User& user, const String& currentPassword, const String& newPassword);

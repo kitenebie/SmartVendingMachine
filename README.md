@@ -21,8 +21,8 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 
 1. Use an ESP32 Arduino core with the pin-based `ledcAttach` / `ledcWrite` API (core 3.x), ArduinoJson 7.x, ESPAsyncWebServer and its compatible AsyncTCP.
 2. Open [ArduinoSmartVendingMachine.ino](ArduinoSmartVendingMachine.ino) and upload to a classic ESP32 development board. Upload the contents of [data](data) as the LittleFS filesystem image.
-3. Open the 115200 baud Serial Monitor. On first start, record the generated WiFi password and initial `admin@local` password. Known legacy `admin123` admin passwords are rotated on upgrade and the replacement appears in Serial.
-4. Connect to `ESP32-Inventory`, open `http://192.168.4.1`, and log in. Opening the admin page synchronizes the machine clock from the admin device (make sure its date and time are correct). Admins can also set **Machine date and time** manually in Philippine local time (UTC+8). Either method lets redemption start without router Wi-Fi. Connecting the machine to a router with internet lets NTP keep time synchronized automatically while the machine hotspot stays available. The admin page also manages products, their fixed servo slots, user credits, and the recent dispense log.
+3. Open the 115200 baud Serial Monitor. On first start, the admin login is `admin` / `admin123`.
+4. Connect to the open `ESP32-Inventory` hotspot, open `http://192.168.4.1`, and log in. Opening the admin page synchronizes the machine clock from the admin device (make sure its date and time are correct). Admins can also set **Machine date and time** manually in Philippine local time (UTC+8). Either method lets redemption start without router Wi-Fi. Connecting the machine to a router with internet lets NTP keep time synchronized automatically while the machine hotspot stays available. The admin page also manages products, their fixed servo slots, user credits, and the recent dispense log.
 
 **Back up runtime data before re-uploading a LittleFS image.** Filesystem upload tools can erase the partition containing `/data/users.json`, `/data/products.json`, and the dispense log. Ordinary sketch uploads do not normally replace that filesystem image.
 
@@ -36,7 +36,7 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 - The firmware checks stock, credits, and that all drop sensors are clear before starting the selected servo. The first active drop sensor stops all dispensers and confirms delivery. After confirmation, the firmware saves the charge and new stock. A five-second timeout stops the servo without a charge.
 - Each account may receive at most four products per Philippine calendar day. Credits expire to zero after two days without account activity. These rules require a valid clock. The admin page sets the clock from the admin device; connecting the machine to internet Wi-Fi keeps it synchronized automatically with NTP.
 - Each product keeps its `slot` number when another product is deleted. A new product takes the lowest unused slot.
-- The saved Wi-Fi password is not returned by the API or shown in the admin page.
+- The router Wi-Fi password is saved locally for NTP access; the ESP32 hotspot has no password.
 
 If a stored pin assignment, account file, product file, or pending transaction cannot be safely loaded, startup halts and prints the reason to Serial. It does not format LittleFS or create a known default password over existing data.
 

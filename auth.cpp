@@ -48,7 +48,7 @@ static bool sameConstantTime(const String& a, const String& b) {
 }
 static void writeUser(JsonObject object, const User& user) {
     object["id"] = user.id; object["firstname"] = user.firstname; object["middlename"] = user.middlename; object["lastname"] = user.lastname;
-    object["email"] = user.email; object["password_hash"] = user.passwordHash; object["salt"] = user.salt; object["role"] = user.role;
+    object["username"] = user.username; object["password_hash"] = user.passwordHash; object["salt"] = user.salt; object["role"] = user.role;
     object["credits"] = user.credits; object["last_credit_activity"] = user.lastCreditActivity; object["last_credit_activity_at"] = user.lastCreditActivityAt;
     object["daily_dispense_date"] = user.dailyDispenseDate; object["daily_dispense_count"] = user.dailyDispenses; object["created_at"] = user.createdAt;
 }
@@ -62,11 +62,11 @@ bool initUsers() {
     if (!json.isEmpty()) { JsonDocument doc; if (deserializeJson(doc, json) != DeserializationError::Ok || !doc["users"].is<JsonArray>()) return false;
       for (JsonObject item : doc["users"].as<JsonArray>()) {
         User user; user.id = item["id"] | ""; user.firstname = item["firstname"] | ""; user.middlename = item["middlename"] | "";
-        user.lastname = item["lastname"] | ""; user.email = item["email"] | ""; user.passwordHash = item["password_hash"] | ""; user.salt = item["salt"] | "";
+        user.lastname = item["lastname"] | ""; user.username = item["username"] | item["email"] | ""; user.passwordHash = item["password_hash"] | ""; user.salt = item["salt"] | "";
         user.role = item["role"] | "user"; user.credits = item["credits"] | 0; user.lastCreditActivity = item["last_credit_activity"] | "";
         user.lastCreditActivityAt = item["last_credit_activity_at"] | 0; user.dailyDispenseDate = item["daily_dispense_date"] | "";
         user.dailyDispenses = item["daily_dispense_count"] | 0; user.createdAt = item["created_at"] | "";
-        if (user.id.isEmpty() || user.email.isEmpty() || user.salt.isEmpty()) return false;
+        if (user.id.isEmpty() || user.username.isEmpty() || user.salt.isEmpty()) return false;
         users.push_back(user);
     }}
     if (users.empty()) {
@@ -76,7 +76,7 @@ bool initUsers() {
     admin.id = randomHex();
     admin.firstname = "System";
     admin.lastname = "Administrator";
-    admin.email = "admin@local";
+    admin.username = "admin";
 
     String initialPassword = "admin123";
     admin.salt = randomHex();
@@ -89,18 +89,18 @@ bool initUsers() {
     if (!saveUsers()) return false;
 
     Serial.printf("[Auth] Initial admin login: %s / %s\n",
-                  admin.email.c_str(), initialPassword.c_str());
+                  admin.username.c_str(), initialPassword.c_str());
 }
 
 return true;
 }
-User* findUserByEmail(const String& email) { for (User& user : users) if (user.email.equalsIgnoreCase(email)) return &user; return nullptr; }
+User* findUserByUsername(const String& username) { for (User& user : users) if (user.username.equalsIgnoreCase(username)) return &user; return nullptr; }
 User* findUserById(const String& id) { for (User& user : users) if (user.id == id) return &user; return nullptr; }
 const std::vector<User>& getUsers() { return users; }
-bool registerUser(const String& firstname, const String& middlename, const String& lastname, const String& email, const String& password, String& error) {
-    if (firstname.isEmpty() || lastname.isEmpty() || email.indexOf('@') < 1 || password.length() < 8) { error = "First name, last name, valid email, and an 8-character password are required"; return false; }
-    if (findUserByEmail(email)) { error = "Email is already registered"; return false; }
-    User user; user.id = randomHex(); user.firstname = firstname; user.middlename = middlename; user.lastname = lastname; user.email = email; user.salt = randomHex();
+bool registerUser(const String& firstname, const String& middlename, const String& lastname, const String& username, const String& password, String& error) {
+    if (firstname.isEmpty() || lastname.isEmpty() || username.isEmpty() || username.length() > 32 || password.length() < 8) { error = "First name, last name, username (1-32 characters), and an 8-character password are required"; return false; }
+    if (findUserByUsername(username)) { error = "Username is already registered"; return false; }
+    User user; user.id = randomHex(); user.firstname = firstname; user.middlename = middlename; user.lastname = lastname; user.username = username; user.salt = randomHex();
     user.passwordHash = passwordHash(password, user.salt); user.role = "user"; user.createdAt = nowIso(); users.push_back(user);
     if (!saveUsers()) { users.pop_back(); error = "Could not save account"; return false; } return true;
 }

@@ -1,0 +1,176 @@
+{
+  "api.cpp": {
+    "mtime": 1791861885.123637,
+    "seen": 1792110492.7023616,
+    "ast_hash": "8a8d9023491bc2e2f991c2a49484e30c",
+    "semantic_hash": ""
+  },
+  "api.h": {
+    "mtime": 1791517140.4157424,
+    "seen": 1792110492.7023616,
+    "ast_hash": "8acee04737fceca9f2fa748aeda6466e",
+    "semantic_hash": ""
+  },
+  "auth.cpp": {
+    "mtime": 1791861885.123637,
+    "seen": 1792110492.7023616,
+    "ast_hash": "8c9c2074801d47a29c8d4f516265267f",
+    "semantic_hash": ""
+  },
+  "auth.h": {
+    "mtime": 1791861885.1246364,
+    "seen": 1792110492.7023616,
+    "ast_hash": "951ab9c1405f3aee1b7ad57d4ffb28c6",
+    "semantic_hash": ""
+  },
+  "config.h": {
+    "mtime": 1792069052.1760418,
+    "seen": 1792110492.7023616,
+    "ast_hash": "5c5ac10861d746cd11de67abe4dbc5b3",
+    "semantic_hash": ""
+  },
+  "data/js/auth.js": {
+    "mtime": 1791861885.1256368,
+    "seen": 1792110492.7023616,
+    "ast_hash": "5c5c22a75417de39d50c541780d9cea9",
+    "semantic_hash": ""
+  },
+  "display_manager.cpp": {
+    "mtime": 1791517140.4256022,
+    "seen": 1792110492.7023616,
+    "ast_hash": "25cc71c088b8f709133a062b6f1c86b0",
+    "semantic_hash": ""
+  },
+  "display_manager.h": {
+    "mtime": 1791517140.4267206,
+    "seen": 1792110492.7023616,
+    "ast_hash": "b83905833d24da3e28a696ffff6f1c73",
+    "semantic_hash": ""
+  },
+  "pin_config.cpp": {
+    "mtime": 1791861885.088376,
+    "seen": 1792110492.7023616,
+    "ast_hash": "c06b4c2e9c1657720cda62007a9d3ea9",
+    "semantic_hash": ""
+  },
+  "pin_config.h": {
+    "mtime": 1791861885.089497,
+    "seen": 1792110492.7023616,
+    "ast_hash": "5a40a1047cca118e212fec68d8415c8e",
+    "semantic_hash": ""
+  },
+  "products.cpp": {
+    "mtime": 1791517140.4317906,
+    "seen": 1792110492.7023616,
+    "ast_hash": "1613e771ac167e7ea3a7b81767503d3b",
+    "semantic_hash": ""
+  },
+  "products.h": {
+    "mtime": 1791517140.433414,
+    "seen": 1792110492.7023616,
+    "ast_hash": "9fe2ea10aac7dfed54dda319ec0d5220",
+    "semantic_hash": ""
+  },
+  "storage.cpp": {
+    "mtime": 1791517140.4345005,
+    "seen": 1792110492.7023616,
+    "ast_hash": "e89608d3b29c91c77c4d94bb87e94520",
+    "semantic_hash": ""
+  },
+  "storage.h": {
+    "mtime": 1791517140.435036,
+    "seen": 1792110492.7023616,
+    "ast_hash": "d2ae09053b9a4774bf93f416d0afc77d",
+    "semantic_hash": ""
+  },
+  "vending_controller.cpp": {
+    "mtime": 1792069141.697697,
+    "seen": 1792110492.7023616,
+    "ast_hash": "6152c39843772e6b5590713933531afd",
+    "semantic_hash": ""
+  },
+  "vending_controller.h": {
+    "mtime": 1791517140.4377122,
+    "seen": 1792110492.7023616,
+    "ast_hash": "610a01605fa9c1f3bdee5f2bc186b6ac",
+    "semantic_hash": ""
+  },
+  "wifi_manager.cpp": {
+    "mtime": 1791861885.127612,
+    "seen": 1792110492.7023616,
+    "ast_hash": "9e01063f2371ea865833d3c049d1bf12",
+    "semantic_hash": ""
+  },
+  "wifi_manager.h": {
+    "mtime": 1791861885.127612,
+    "seen": 1792110492.7023616,
+    "ast_hash": "fecd3f4a058bd1f2786a78e182e9e410",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1791861885.1206007,
+    "seen": 1792110492.7023616,
+    "ast_hash": "971694248d5ef023118d7302c4b70692",
+    "semantic_hash": ""
+  },
+  "PaanoGumaganaAngVendingMachineFromWebserverUpToDispensing.md": {
+    "mtime": 1792069141.7047012,
+    "seen": 1792110492.7023616,
+    "ast_hash": "87c7cbefaa5daf0de4a3aadd3b0c0f37",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1792069141.7007465,
+    "seen": 1792110492.7023616,
+    "ast_hash": "75cc693777da4286e7e8cba12b3d9069",
+    "semantic_hash": ""
+  },
+  "Vending_Machine_Plan.md": {
+    "mtime": 1791517140.4124568,
+    "seen": 1792110492.7023616,
+    "ast_hash": "87e3ab5746ee99c6051073481d196c2e",
+    "semantic_hash": ""
+  },
+  "connection.md": {
+    "mtime": 1791517140.4200504,
+    "seen": 1792110492.7023616,
+    "ast_hash": "2c2cf38b1b484067833666a9131be08f",
+    "semantic_hash": ""
+  },
+  "data/admin.html": {
+    "mtime": 1791861885.1256368,
+    "seen": 1792110492.7023616,
+    "ast_hash": "e2b6003506a02abf160f62aea6d2492b",
+    "semantic_hash": ""
+  },
+  "data/login.html": {
+    "mtime": 1791517140.4229121,
+    "seen": 1792110492.7023616,
+    "ast_hash": "663811d78f1e83561f5615f4161e2105",
+    "semantic_hash": ""
+  },
+  "data/portal.html": {
+    "mtime": 1791517140.4239938,
+    "seen": 1792110492.7023616,
+    "ast_hash": "c4ae03a9cd8a2274c5b7a60172fd5f26",
+    "semantic_hash": ""
+  },
+  "skills/ponytail/SKILL.md": {
+    "mtime": 1791689908.36513,
+    "seen": 1792110492.7023616,
+    "ast_hash": "14fa897c537beacf82472ee98fafbd72",
+    "semantic_hash": ""
+  },
+  "wiring_and_assembly_guide.md": {
+    "mtime": 1792069141.705548,
+    "seen": 1792110492.7023616,
+    "ast_hash": "bfb243ea5bba1188a0421c95d22adcdf",
+    "semantic_hash": ""
+  },
+  "Plan.jpg": {
+    "mtime": 1787383025.216476,
+    "seen": 1792110492.7023616,
+    "ast_hash": "e34a9bf9ea507299037d4d85c1e9aa0b",
+    "semantic_hash": ""
+  }
+}

@@ -4,34 +4,40 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>User portal</title>
 <style>
-body{font:16px system-ui;max-width:760px;margin:auto;padding:20px;background:#f8fafc}
-section{background:white;padding:20px;margin:12px 0;border-radius:10px}
-button,input{padding:9px;margin:4px}button{background:#2563eb;color:white;border:0;border-radius:5px}
-button:disabled{opacity:.6}.credit{font-size:42px;font-weight:bold}li{margin:10px 0}
-.modal{position:fixed;inset:0;background:#0008;color:#fff;display:none;place-items:center}
-.modal>div{background:#111827;padding:30px;border-radius:12px;text-align:center}
+ :root{color-scheme:light;--ink:#173a28;--muted:#536457;--green:#397d36;--green-dark:#245b2b;--sage:#e8f0df;--paper:#f1f6ef;--line:#d8e1d1;--white:#fffefa}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,sans-serif}h1,h2,p{margin-top:0}h1{font-size:clamp(1.9rem,4vw,2.5rem);line-height:1.15;margin-bottom:4px}h2{font-size:1.4rem;line-height:1.25;margin-bottom:12px}button,input{font:inherit}button{min-height:44px;padding:10px 16px;border:1px solid transparent;border-radius:9px;background:var(--green);color:white;font-weight:700;cursor:pointer}button:hover{background:var(--green-dark)}button:disabled{opacity:.55;cursor:not-allowed}button:focus-visible,input:focus-visible{outline:3px solid #b36c0c;outline-offset:2px}.secondary{background:var(--white);border-color:var(--line);color:var(--ink)}.secondary:hover{background:var(--sage);color:var(--ink)}.topbar{height:72px;padding:0 clamp(16px,4vw,48px);display:flex;align-items:center;justify-content:space-between;background:var(--white);border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:12px;font-weight:800}.brand-mark{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:var(--green);color:white}.portal{width:min(100% - 32px,1000px);margin:32px auto;display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{min-width:0;padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--white);box-shadow:0 3px 12px #203c2810}.welcome-panel{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:24px}.subhead,.hint{color:var(--muted)}#message,#machineStatus{min-height:24px;margin:0 0 8px;color:var(--green-dark)}.credit-card{min-width:180px;padding:14px 20px;border-radius:13px;background:var(--sage)}.credit-label{font-weight:700;color:var(--muted)}.credit{font-size:2.4rem;line-height:1.15;font-weight:850;letter-spacing:-.03em}.insert-button{margin-top:14px}.product-list{list-style:none;margin:0;padding:0}.product-list li{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}.product-list li:last-child{border-bottom:0}.product-list button{flex:none}.form-stack{display:grid;gap:13px}.field{display:grid;gap:6px}.field label{font-size:.9rem;font-weight:700}.field input{width:100%;min-height:44px;padding:9px 11px;border:1px solid #aab9ab;border-radius:8px;background:white;color:var(--ink)}.modal{position:fixed;inset:0;z-index:5;background:#173a28aa;display:none;place-items:center;padding:18px}.modal>div{width:min(100%,440px);padding:30px;border-radius:18px;background:var(--white);color:var(--ink);text-align:center;box-shadow:0 20px 50px #0003}.modal h2{font-size:1.7rem}.countdown{font-size:2rem;font-weight:800;color:var(--green-dark)}
+@media(max-width:680px){.portal{grid-template-columns:1fr;margin:18px auto}.welcome-panel{grid-column:auto;align-items:stretch;flex-direction:column}.credit-card{min-width:0}.panel{padding:19px}}
+@media(max-width:420px){.topbar{height:64px}.product-list li{align-items:flex-start}.product-list button{padding:8px 11px}}
+.product-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.product-list li.product-card{display:grid;grid-template-columns:1fr;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--white)}.product-art{height:138px;background-color:var(--sage);background-image:url('product-sprite.png');background-repeat:no-repeat;background-size:200% 200%;background-position:0 0}.product-art.slot-2{background-position:100% 0;background-color:#f3f0df}.product-art.slot-3{background-position:0 100%;background-color:#eaf1e2}.product-art.slot-4{background-position:100% 100%;background-color:#f4ede3}.product-info{display:grid;gap:8px;padding:13px}.product-info strong{font-size:1rem}.product-info span{color:var(--muted);font-size:.9rem}.product-info button{width:100%}
+@media(max-width:420px){.product-list{grid-template-columns:1fr}}
+body{background-image:url('login-background.jpg');background-position:center top;background-size:cover;background-attachment:fixed}.topbar{height:auto;min-height:70px;background:transparent;border:0}.portal-brand{display:flex;align-items:center;gap:12px}.portal-logo{color:var(--green);font-size:48px;line-height:1}.portal-brand strong,.portal-brand small{display:block}.portal-brand small{font-weight:400;color:var(--muted)}.portal{width:min(100% - 32px,650px);margin:14px auto;grid-template-columns:1fr;gap:12px}.welcome-panel{grid-column:auto;display:grid;gap:10px;padding:14px;background:#fffdf9e8}.credit-strip{position:relative;display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:8px;padding:10px 14px;border-radius:13px;background:#e7f1d8;overflow:hidden}.coin-icon{width:34px;height:34px;color:var(--green-dark)}.coin-icon svg,.insert-icon svg,.panel-title-icon svg,.account-icon svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.credit-label{font-size:.9rem;font-weight:750;color:var(--ink)}.credit{font-size:2.25rem;line-height:1;font-weight:850;letter-spacing:-.03em}.insert-button{width:100%;min-height:44px;margin:0;display:flex;align-items:center;justify-content:center;gap:9px}.insert-icon{width:20px;height:24px}.insert-hint{margin:0;text-align:center;font-size:.82rem;color:var(--ink)}#machineStatus,#message{min-height:20px;margin:0;text-align:center;font-size:.85rem}.redeem-panel{padding:16px;background:#fffdf9e8}.panel-title{display:flex;align-items:center;gap:9px;margin-bottom:10px}.panel-title-icon{width:24px;height:24px;color:var(--green-dark)}.product-list{display:grid;grid-template-columns:1fr;gap:7px}.product-list li.product-card{display:flex;align-items:center;gap:10px;min-height:66px;padding:6px 8px;border:1px solid var(--line);border-radius:11px;background:#fffdf9}.product-art{width:42px;height:46px;flex:none;border-radius:8px}.product-info{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:0}.product-info strong{font-size:.94rem}.product-info span{font-size:.78rem}.product-info button{grid-column:2;grid-row:1/3;width:auto;min-width:82px;min-height:38px;padding:7px 10px;font-size:.88rem}.account-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.account-actions button{display:flex;align-items:center;justify-content:center;gap:9px;background:#fffdf9;border-color:var(--green-dark);color:var(--ink)}.account-icon{width:18px;height:18px}.security-panel{background:#fffdf9ef}@media(max-width:420px){.portal{margin:10px auto}.redeem-panel{padding:14px}.product-art{width:38px}.product-info button{min-width:72px;padding:7px 8px}}
+.topbar{min-height:56px}.portal-logo{font-size:38px}.portal{margin:6px auto;gap:8px}.welcome-panel{gap:6px;padding:10px}.credit-strip{padding:6px 10px;grid-template-columns:32px 1fr auto}.coin-icon{width:29px;height:29px}.credit{font-size:1.95rem}.insert-button{min-height:40px}.insert-icon{width:17px;height:20px}.insert-hint,#machineStatus,#message{font-size:.76rem;line-height:1.25}.redeem-panel{padding:11px}.panel-title{font-size:1.15rem;margin-bottom:6px}.panel-title-icon{width:20px;height:20px}.product-list{gap:5px}.product-list li.product-card{min-height:52px;padding:4px 6px;gap:7px}.product-art{width:36px;height:38px}.product-info{gap:0 6px}.product-info strong{font-size:.85rem;line-height:1.2}.product-info span{font-size:.7rem;line-height:1.2}.product-info button{min-width:72px;min-height:34px;padding:5px 7px;font-size:.8rem}.account-actions{gap:8px}.account-actions button{min-height:38px;padding:7px 10px;font-size:.88rem}.account-icon{width:16px;height:16px}.security-panel{padding:13px}
+body{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}.topbar{flex:none}.portal{width:min(100% - 16px,900px);flex:1;min-height:0;display:flex;flex-direction:column;margin:6px auto}.portal-brand,.welcome-panel,.account-actions{flex:none}.portal-grid{flex:1;min-height:0;display:flex;flex-direction:column}.redeem-panel{flex:1;min-height:0;display:flex;flex-direction:column}.product-list{flex:1;min-height:0}.product-list li.product-card{flex:1}.security-panel{flex:none}
+/* Wider screens use the available width for a readable two-column reward grid. */
+.portal{width:min(calc(100% - 16px),1200px)}
+.insert-button{min-height:48px}
+.product-list li.product-card{min-height:58px}
+.product-info span{font-size:.875rem;line-height:1.35}
+.product-info button,.account-actions button{min-height:44px}
+@media(min-width:720px){.portal{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr);grid-template-rows:auto 1fr auto;align-content:stretch;min-height:calc(100svh - 68px);gap:14px}.portal-brand,.account-actions{grid-column:1/-1}.welcome-panel{grid-column:1;grid-row:2;align-self:start}.redeem-panel{grid-column:2;grid-row:2}.security-panel{grid-column:1/-1}.product-list{grid-template-columns:repeat(2,minmax(0,1fr))}.product-list li.product-card{min-height:70px}}
+
+.modal{background:#173a28b8;backdrop-filter:blur(5px);padding:16px}.modal>div{width:min(100%,420px);padding:26px;border:1px solid #d4dfc7;border-radius:22px;background:linear-gradient(160deg,#fffdf5,#f1f6e8);box-shadow:0 24px 70px #12281550}.modal h2{margin:0 0 14px;font-size:1.6rem}.session-mark{display:grid;width:54px;height:54px;margin:0 auto 10px;place-items:center;border-radius:16px;background:#e4f0d6;color:var(--green-dark)}.session-mark svg{width:26px;height:34px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.session-kicker{margin:0;color:var(--green-dark);font-size:.78rem;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.countdown-ring{display:grid;width:116px;height:116px;margin:0 auto 14px;padding:8px;place-items:center;border:8px solid #dfe9d5;border-top-color:var(--green);border-radius:50%;background:#fffefa;color:var(--green-dark)}.countdown-ring>.countdown-center{font-size:1rem;font-weight:400;line-height:normal}.countdown-center>span{font-size:2.2rem;font-weight:850;line-height:1}.countdown-center small{font-size:.75rem}.modal #session-instructions{max-width:310px;margin:0 auto 18px;color:var(--muted)}.modal #done{width:100%;min-height:48px}
 </style>
-<h1>My recycling account</h1>
-<button id="logout">Log out</button>
-<p id="message" role="status"></p>
-<p id="machineStatus" role="status"></p>
-<section>
-  <div>Credits</div><div class="credit" id="credits">—</div>
-  <button id="insert">Insert bottle</button>
-</section>
-<section><h2>Redeem</h2><p>One item per request. You are charged only after a drop sensor confirms delivery.</p><ul id="products"></ul></section>
-<section>
-  <h2>Change password</h2>
-  <form id="passwordForm">
-    <input id="currentPassword" type="password" placeholder="Current password" autocomplete="current-password" required>
-    <input id="newPassword" type="password" placeholder="New password" autocomplete="new-password" minlength="8" required>
-    <button>Change password</button>
-  </form>
-</section>
-<div class="modal" id="modal"><div>
-  <h2>Drop the bottle</h2><p><span id="seconds">60</span>s remaining</p>
-  <p>You may also press a product button while this session is active.</p>
-  <button id="done">Done</button>
+<body><header class="topbar"><div class="portal-brand"><span class="portal-logo" aria-hidden="true">♻</span><span><strong>Reverse-Vending Machine</strong><small>User Portal</small></span></div></header>
+<main class="portal">
+  <section class="panel welcome-panel"><div class="credit-strip"><span class="coin-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><ellipse cx="14" cy="8" rx="9" ry="4"/><path d="M5 8v5c0 2.2 4 4 9 4 1.4 0 2.8-.2 4-.5M5 13v5c0 2.2 4 4 9 4 1.7 0 3.3-.2 4.7-.7M12 22v2c0 2.2 4 4 9 4s9-1.8 9-4v-5M12 22v-5M21 13c5 0 9 1.8 9 4s-4 4-9 4-9-1.8-9-4 4-4 9-4Z"/></svg></span><span class="credit-label">Your Credits</span><strong class="credit" id="credits">—</strong></div><button id="insert" class="insert-button" type="button"><span class="insert-icon" aria-hidden="true"><svg viewBox="0 0 24 32"><path d="M9 2h6v5l2 2v2H7V9l2-2V2Z"/><path d="M7 11h10l2 3v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V14l2-3Z"/></svg></span>Insert Bottle</button><p class="insert-hint">Tap when you insert a bottle into the machine.</p><p id="machineStatus" role="status" aria-live="polite"></p><p id="message" role="status" aria-live="polite"></p></section>
+  <section class="panel redeem-panel"><h2 class="panel-title"><span class="panel-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10h18v11H3zM2 6h20v4H2zM12 6v15M12 6H7.5a2.5 2.5 0 1 1 2.5-2.5C10 5 12 6 12 6Zm0 0h4.5A2.5 2.5 0 1 0 14 3.5C14 5 12 6 12 6Z"/></svg></span>Redeem Product</h2><ul id="products" class="product-list"></ul></section>
+  <section id="passwordPanel" class="panel security-panel" hidden><h2>Change Password</h2><form id="passwordForm" class="form-stack">
+    <div class="field"><label for="currentPassword">Current password</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
+    <div class="field"><label for="newPassword">New password (8+ characters)</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></div><button type="submit">Save Password</button><button id="cancelPassword" type="button" class="secondary">Cancel</button>
+  </form></section>
+  <div class="account-actions"><button id="changePassword" type="button"><span class="account-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8 3 3-8 8M17 6l3 3"/></svg></span>Change Password</button><button id="logout" type="button"><span class="account-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M13 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg></span>Logout</button></div>
+</main>
+<div class="modal" id="modal"><div role="dialog" aria-modal="true" aria-labelledby="insert-title" aria-describedby="session-instructions">
+  <span class="session-mark" aria-hidden="true"><svg viewBox="0 0 24 32"><path d="M9 2h6v5l2 2v2H7V9l2-2V2Z"/><path d="M7 11h10l2 3v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V14l2-3Z"/></svg></span>
+  <p class="session-kicker">Bottle session active</p><h2 id="insert-title">Insert a bottle</h2>
+  <div class="countdown-ring" id="timerRing" role="timer"><span class="countdown-center"><span id="seconds">60</span><small>seconds left</small></span></div>
+  <p id="session-instructions">Insert your bottle now. You may also redeem a product while the session is active.</p><button id="done" type="button">Finish session</button>
 </div></div>
 <script src="/js/auth.js"></script>
 <script>
@@ -49,13 +55,22 @@ async function refresh() {
     : 'Vending ready.';
   const rows = listing.products.map(product => {
     const row = document.createElement('li');
-    row.append(document.createTextNode(product.name + ' — ' + product.credit_cost +
-      ' credits (' + product.stock + ' left, slot ' + product.slot + ') '));
+    row.className = 'product-card';
+    const art = document.createElement('div');
+    art.className = 'product-art slot-' + product.slot;
+    art.setAttribute('role', 'img');
+    art.setAttribute('aria-label', product.name);
+    const info = document.createElement('div');
+    info.className = 'product-info';
+    const name = document.createElement('strong'); name.textContent = product.name + ' (Slot ' + product.slot + ')';
+    const stock = document.createElement('span');
+    stock.textContent = product.credit_cost + ' credits · ' + product.stock + ' left';
     const button = document.createElement('button');
     button.textContent = 'Redeem';
     button.disabled = !product.stock || purchasePending;
     button.onclick = () => redeem(product.id);
-    row.append(button);
+    info.append(name, stock, button);
+    row.append(art, info);
     return row;
   });
   $('products').replaceChildren(...rows);
@@ -86,10 +101,16 @@ async function redeem(id) {
   await refresh().catch(error => message(error.message));
 }
 $('logout').onclick = logout;
+$('changePassword').onclick = () => {
+  $('passwordPanel').hidden = !$('passwordPanel').hidden;
+  if (!$('passwordPanel').hidden) $('passwordPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+};
+$('cancelPassword').onclick = () => { $('passwordPanel').hidden = true; };
 $('insert').onclick = async () => {
   try {
     await api('/api/session/start', {method:'POST'});
     $('modal').style.display = 'grid';
+    $('done').focus();
     clearInterval(sessionTimer);
     sessionTimer = setInterval(async () => {
       try {
@@ -108,6 +129,7 @@ $('insert').onclick = async () => {
 $('done').onclick = async () => {
   clearInterval(sessionTimer);
   $('modal').style.display = 'none';
+  $('insert').focus();
   try { await api('/api/session/end', {method:'POST'}); await refresh(); }
   catch (error) { message(error.message); }
 };
@@ -117,10 +139,11 @@ $('passwordForm').onsubmit = async event => {
     await api('/api/user/password', {method:'POST', body:JSON.stringify({
       current_password:$('currentPassword').value, new_password:$('newPassword').value
     })});
-    event.target.reset(); message('Password changed.');
+    event.target.reset(); $('passwordPanel').hidden = true; message('Password changed.');
   } catch (error) { message(error.message); }
 };
 if (!token()) location.href = '/login.html';
 else refresh().catch(() => location.href = '/login.html');
 </script>
+</body>
 </html>
