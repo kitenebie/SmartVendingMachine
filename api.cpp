@@ -8,12 +8,12 @@
 #include "config.h"
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include <Preferences.h>
 #include <time.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
 static const char* JOURNAL_FILE = "/pending_redemption.json";
-static const int CREDIT_PER_BOTTLE = 1;
 static SemaphoreHandle_t apiMutex;
 struct ApiLock {
     ApiLock() { xSemaphoreTake(apiMutex, portMAX_DELAY); }
@@ -36,7 +36,17 @@ static PendingDispense pending;
 static String lastResultUser, lastResult;
 static String bottleCreditUser;
 static int bottleCreditsWaiting = 0;
+static uint32_t storedBottleCount = 0;
+static bool bottleCountSaveFailed = false;
 static uint32_t lastCommitRetry = 0;
+
+static bool saveBottleCount(uint32_t count) {
+    Preferences prefs;
+    if (!prefs.begin("bottle-store", false)) return false;
+    bool saved = prefs.putUInt("count", count) == sizeof(count);
+    prefs.end();
+    return saved;
+}
 
 static void sendJson(AsyncWebServerRequest* request, int status, JsonDocument& doc) {
     String out; serializeJson(doc, out);
@@ -305,6 +315,19 @@ static void handleAdminCredits(AsyncWebServerRequest* request, uint8_t* data, si
     }
     JsonDocument result; result["success"] = true; sendJson(request, 200, result);
 }
+static void handleAdminStorage(AsyncWebServerRequest* request) {
+    ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
+    JsonDocument result; result["count"] = storedBottleCount; result["capacity"] = BOTTLE_STORAGE_CAPACITY;
+    sendJson(request, 200, result);
+}
+static void handleAdminStorageReset(AsyncWebServerRequest* request) {
+    ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
+    if (active.locked || bottleCreditsWaiting || pending.slot || !saveBottleCount(0)) {
+        sendError(request, 409, "storage_reset_unavailable"); return;
+    }
+    storedBottleCount = 0; bottleCountSaveFailed = false; setBottleStorageFull(false);
+    JsonDocument result; result["count"] = storedBottleCount; sendJson(request, 200, result);
+}
 static void handleAdminWiFi(AsyncWebServerRequest* request) {
     ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
     String ssid, password; loadStationCredentials(ssid, password);
@@ -340,14 +363,22 @@ void updateReverseVending() {
     if (active.locked && (int32_t)(active.expiresAt - now) <= 0) {
         active = {}; setBottleCollectionEnabled(false);
     }
-    if (active.locked && consumeValidatedBottle()) {
-        bottleCreditUser = active.userId;
-        ++bottleCreditsWaiting;
+    int creditsEarned;
+    if (active.locked && consumeValidatedBottle(creditsEarned)) {
+        if (storedBottleCount < BOTTLE_STORAGE_CAPACITY) {
+            ++storedBottleCount;
+            bottleCountSaveFailed = !saveBottleCount(storedBottleCount);
+            setBottleStorageFull(storedBottleCount >= BOTTLE_STORAGE_CAPACITY || bottleCountSaveFailed);
+            if (bottleCountSaveFailed) Serial.println("[Storage] Bottle count save failed; collection stopped.");
+            if (storedBottleCount == BOTTLE_STORAGE_CAPACITY) alertStorageFull();
+            bottleCreditUser = active.userId;
+            bottleCreditsWaiting += creditsEarned;
+        }
         active.expiresAt = now + 60000;
     }
     if (bottleCreditsWaiting) {
         User* user = findUserById(bottleCreditUser);
-        if (user && addUserCredits(*user, CREDIT_PER_BOTTLE)) {
+        if (user && addUserCredits(*user, 1)) {
             --bottleCreditsWaiting;
             displayCredits(user->credits);
         }
@@ -424,6 +455,12 @@ void updateReverseVending() {
 bool setupAPI(AsyncWebServer& server) {
     apiMutex = xSemaphoreCreateMutex();
     if (!apiMutex) return false;
+    Preferences prefs;
+    if (!prefs.begin("bottle-store", true)) return false;
+    storedBottleCount = prefs.getUInt("count", 0);
+    prefs.end();
+    bottleCountSaveFailed = storedBottleCount > BOTTLE_STORAGE_CAPACITY;
+    setBottleStorageFull(storedBottleCount >= BOTTLE_STORAGE_CAPACITY || bottleCountSaveFailed);
     server.on("/api/register", HTTP_POST, emptyBody, nullptr, handleRegister);
     server.on("/api/login", HTTP_POST, emptyBody, nullptr, handleLogin);
     server.on("/api/logout", HTTP_POST, handleLogout);
@@ -440,6 +477,8 @@ bool setupAPI(AsyncWebServer& server) {
     server.on("/api/admin/users", HTTP_GET, handleAdminUsers);
     server.on("/api/admin/log", HTTP_GET, handleAdminLog);
     server.on("/api/admin/credits", HTTP_POST, emptyBody, nullptr, handleAdminCredits);
+    server.on("/api/admin/storage", HTTP_GET, handleAdminStorage);
+    server.on("/api/admin/storage/reset", HTTP_POST, emptyBody, nullptr, handleAdminStorageReset);
     server.on("/api/admin/wifi", HTTP_GET, handleAdminWiFi);
     server.on("/api/admin/wifi", HTTP_POST, emptyBody, nullptr, handleAdminWiFiSave);
     server.on("/api/admin/time", HTTP_POST, emptyBody, nullptr, handleAdminTimeSync);

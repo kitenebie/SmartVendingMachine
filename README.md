@@ -28,8 +28,10 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 
 ## Dispensing behavior
 
-- The tube door opens after both bottle sensors detect a bottle for 200 ms, then closes once both sensors are clear; it also closes when the session ends or times out.
-- A bottle earns one credit when the upper and lower sensors are both active for 200 ms.
+- The tube door opens after Sensors A and B detect a bottle for 200 ms, then closes once all four sensors are clear; it also closes when the session ends or times out.
+- Bottle credit is sensor-based: A+B = 1, A+B+C = 3, and A+B+C+D = 5. Sensors C and D default to GPIO 36 and 39.
+- Bottle storage count persists across restarts and stops collection at 100 bottles. Admins can reset the count after physically emptying the storage.
+- An active buzzer on GPIO 5 sounds for 500 ms when bottle storage reaches capacity. Drive it through a transistor; GPIO 5 is a boot-strap pin, so the buzzer circuit must not pull it during reset.
 - A product button works only while that account's 60-second bottle session is active. The web portal can also request one item.
 - The firmware checks stock, credits, and that all drop sensors are clear before starting the selected servo. The first active drop sensor stops all dispensers and confirms delivery. After confirmation, the firmware saves the charge and new stock. A five-second timeout stops the servo without a charge.
 - Each account may receive at most four products per Philippine calendar day. Credits expire to zero after two days without account activity. These rules require a valid clock. The admin page sets the clock from the admin device; connecting the machine to internet Wi-Fi keeps it synchronized automatically with NTP.

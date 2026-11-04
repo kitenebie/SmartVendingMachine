@@ -8,6 +8,8 @@
 struct PinConfig {
     int sensorA;     // Bottle Sensor A
     int sensorB;     // Bottle Sensor B
+    int sensorC;     // Bottle Sensor C
+    int sensorD;     // Bottle Sensor D
     int btn1;        // Button Product 1
     int btn2;        // Button Product 2
     int btn3;        // Button Product 3

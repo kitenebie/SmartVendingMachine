@@ -13,8 +13,10 @@ static const char* PINS_FILE = "/pins.json";
 
 // Default hardware pins
 static PinConfig s_pins = {
-    34, // sensorA
-    35, // sensorB
+    PIN_SENSOR_A, // sensorA
+    PIN_SENSOR_B, // sensorB
+    PIN_SENSOR_C, // sensorC
+    PIN_SENSOR_D, // sensorD
     13, // btn1
     14, // btn2
     27, // btn3
@@ -40,11 +42,11 @@ bool isValidGpio(int pin, bool allowInputOnly) {
 }
 
 static bool validConfig(const PinConfig& cfg) {
-    const int inputOnlyAllowed[] = {cfg.sensorA, cfg.sensorB};
+    const int inputOnlyAllowed[] = {cfg.sensorA, cfg.sensorB, cfg.sensorC, cfg.sensorD};
     const int outputCapable[] = {cfg.btn1, cfg.btn2, cfg.btn3, cfg.btn4,
         cfg.ir1, cfg.ir2, cfg.ir3, cfg.ir4, cfg.servo1, cfg.servo2,
         cfg.servo3, cfg.servo4, cfg.doorServo, cfg.lcdSda, cfg.lcdScl};
-    int all[18];
+    int all[19];
     int count = 0;
     for (int pin : inputOnlyAllowed) {
         if (!isValidGpio(pin, true)) return false;
@@ -78,6 +80,8 @@ bool initPinConfig() {
 
     s_pins.sensorA = doc["sensorA"] | s_pins.sensorA;
     s_pins.sensorB = doc["sensorB"] | s_pins.sensorB;
+    s_pins.sensorC = doc["sensorC"] | s_pins.sensorC;
+    s_pins.sensorD = doc["sensorD"] | s_pins.sensorD;
     s_pins.btn1    = doc["btn1"]    | s_pins.btn1;
     s_pins.btn2    = doc["btn2"]    | s_pins.btn2;
     s_pins.btn3    = doc["btn3"]    | s_pins.btn3;
@@ -122,6 +126,8 @@ bool savePinConfig(const PinConfig& cfg) {
     JsonDocument doc;
     doc["sensorA"] = cfg.sensorA;
     doc["sensorB"] = cfg.sensorB;
+    doc["sensorC"] = cfg.sensorC;
+    doc["sensorD"] = cfg.sensorD;
     doc["btn1"]    = cfg.btn1;
     doc["btn2"]    = cfg.btn2;
     doc["btn3"]    = cfg.btn3;
@@ -149,7 +155,8 @@ bool savePinConfig(const PinConfig& cfg) {
 }
 
 void resetPinConfigToDefaults() {
-    PinConfig defaults = {34, 35, 13, 14, 27, 26, 16, 17, 32, 33,
+    PinConfig defaults = {PIN_SENSOR_A, PIN_SENSOR_B, PIN_SENSOR_C, PIN_SENSOR_D,
+                          13, 14, 27, 26, 16, 17, 32, 33,
                           18, 19, 21, 25, PIN_DOOR_SERVO, 23, 22};
     savePinConfig(defaults);
 }
