@@ -35,6 +35,7 @@ Vector version: [sensor-buzzer-wiring.svg](diagrams/sensor-buzzer-wiring.svg).
 | **Bottle Proximity Sensor B** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 35 / P35** | Same voltage protection as Sensor A; both sensors validate one bottle. |
 | **Bottle Size Sensor C** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 36 / VP** | 3.3V max; input-only pin, add an external pull resistor if the output floats. |
 | **Bottle Size Sensor D** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 39 / VN** | Same signal requirements as Sensor C. |
+| **3-pin Active Buzzer** | Supply rated for the buzzer module | Common GND | Per module; signal input must be 3.3V-compatible | `SIG/S` → **GPIO 5** | GPIO 5 is a boot-strap pin; avoid modules that pull it during reset. |
 | **Product 1 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 13 / P13** | Do **not** connect this button to 5V. |
 | **Product 2 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 14 / P14** | Do **not** connect this button to 5V. |
 | **Product 3 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 27 / P27** | Do **not** connect this button to 5V. |
