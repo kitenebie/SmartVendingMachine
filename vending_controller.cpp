@@ -141,6 +141,12 @@ bool consumeValidatedBottle(int& credits) {
     xSemaphoreGive(hardwareMutex);
     return result;
 }
+bool bottleDetectionPending() {
+    xSemaphoreTake(hardwareMutex, portMAX_DELAY);
+    bool pending = validationStarted || bottleInFlight || bottleReady;
+    xSemaphoreGive(hardwareMutex);
+    return pending;
+}
 bool startDispense(uint8_t slot) {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
     bool ready = slot >= 1 && slot <= 4 && !dispensingSlot &&

@@ -8,6 +8,7 @@ void setBottleCollectionEnabled(bool enabled);
 void setBottleStorageFull(bool full);
 void alertStorageFull();
 bool consumeValidatedBottle(int& credits);
+bool bottleDetectionPending();
 bool startDispense(uint8_t slot);
 DispenseResult takeDispenseResult();
 uint8_t takeButtonPress();

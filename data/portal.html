@@ -37,7 +37,7 @@ body{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}.topb
   <span class="session-mark" aria-hidden="true"><svg viewBox="0 0 24 32"><path d="M9 2h6v5l2 2v2H7V9l2-2V2Z"/><path d="M7 11h10l2 3v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V14l2-3Z"/></svg></span>
   <p class="session-kicker">Bottle session active</p><h2 id="insert-title">Insert a bottle</h2>
   <div class="countdown-ring" id="timerRing" role="timer"><span class="countdown-center"><span id="seconds">60</span><small>seconds left</small></span></div>
-  <p id="session-instructions">Insert your bottle now. You may also redeem a product while the session is active.</p><button id="done" type="button">Finish session</button>
+  <p id="session-instructions">Insert your bottle now. You may also redeem a product while the session is active.</p><p id="sessionNotice" role="status" aria-live="polite"></p><button id="done" type="button">Finish session</button>
 </div></div>
 <script src="/js/auth.js"></script>
 <script>
@@ -109,6 +109,7 @@ $('cancelPassword').onclick = () => { $('passwordPanel').hidden = true; };
 $('insert').onclick = async () => {
   try {
     await api('/api/session/start', {method:'POST'});
+    $('sessionNotice').textContent = '';
     $('modal').style.display = 'grid';
     $('done').focus();
     clearInterval(sessionTimer);
@@ -127,11 +128,13 @@ $('insert').onclick = async () => {
   } catch (error) { message(error.message); }
 };
 $('done').onclick = async () => {
-  clearInterval(sessionTimer);
-  $('modal').style.display = 'none';
-  $('insert').focus();
-  try { await api('/api/session/end', {method:'POST'}); await refresh(); }
-  catch (error) { message(error.message); }
+  try {
+    await api('/api/session/end', {method:'POST'});
+    clearInterval(sessionTimer);
+    $('modal').style.display = 'none';
+    $('insert').focus();
+    await refresh();
+  } catch (error) { $('sessionNotice').textContent = error.message; }
 };
 $('passwordForm').onsubmit = async event => {
   event.preventDefault();

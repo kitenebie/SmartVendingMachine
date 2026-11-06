@@ -251,6 +251,7 @@ static void handleStart(AsyncWebServerRequest* request) {
 static void handleEnd(AsyncWebServerRequest* request) {
     ApiLock lock; User* user; if (!requireUser(request, user)) return;
     if (active.locked && active.userId != user->id) { sendError(request, 403, "not_session_owner"); return; }
+    if (bottleDetectionPending()) { sendError(request, 409, "bottle_detection_pending"); return; }
     active = {}; setBottleCollectionEnabled(false);
     JsonDocument result; result["success"] = true; sendJson(request, 200, result);
 }
@@ -361,7 +362,8 @@ void updateReverseVending() {
     ApiLock lock;
     uint32_t now = millis();
     if (active.locked && (int32_t)(active.expiresAt - now) <= 0) {
-        active = {}; setBottleCollectionEnabled(false);
+        if (bottleDetectionPending()) active.expiresAt = now + 1000;
+        else { active = {}; setBottleCollectionEnabled(false); }
     }
     int creditsEarned;
     if (active.locked && consumeValidatedBottle(creditsEarned)) {
@@ -373,14 +375,17 @@ void updateReverseVending() {
             if (storedBottleCount == BOTTLE_STORAGE_CAPACITY) alertStorageFull();
             bottleCreditUser = active.userId;
             bottleCreditsWaiting += creditsEarned;
+            Serial.printf("[Bottle] Validated; awarding %d credits to %s.\n", creditsEarned, bottleCreditUser.c_str());
         }
         active.expiresAt = now + 60000;
     }
     if (bottleCreditsWaiting) {
         User* user = findUserById(bottleCreditUser);
-        if (user && addUserCredits(*user, 1)) {
-            --bottleCreditsWaiting;
+        int creditsToApply = bottleCreditsWaiting;
+        if (user && addUserCredits(*user, creditsToApply)) {
+            bottleCreditsWaiting = 0;
             displayCredits(user->credits);
+            Serial.printf("[Bottle] Added %d credits; total is %d.\n", creditsToApply, user->credits);
         }
     }
     DispenseResult result = takeDispenseResult();
