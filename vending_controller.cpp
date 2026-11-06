@@ -17,13 +17,15 @@ static uint8_t buttonRaw[4], buttonStable[4];
 static uint32_t buttonChangedAt[4];
 static DispenseResult dispenseResult = DispenseResult::None;
 static const uint32_t SERVO_MIN = 3277, SERVO_MAX = 6553;
-static constexpr int bottleCreditsForSensors(bool sensorC, bool sensorD) {
-    return sensorC && sensorD ? 5 : sensorC ? 3 : 1;
+static constexpr int bottleCreditsForSensors(bool sensorA, bool sensorB, bool sensorC, bool sensorD) {
+    return !sensorA || !sensorB || (!sensorC && sensorD) ? 0 : sensorD ? 5 : sensorC ? 3 : 1;
 }
-static_assert(bottleCreditsForSensors(false, false) == 1 &&
-              bottleCreditsForSensors(true, false) == 3 &&
-              bottleCreditsForSensors(false, true) == 1 &&
-              bottleCreditsForSensors(true, true) == 5, "Bottle credit tiers changed");
+static_assert(bottleCreditsForSensors(true, true, false, false) == 1 &&
+              bottleCreditsForSensors(true, true, true, false) == 3 &&
+              bottleCreditsForSensors(true, true, true, true) == 5 &&
+              bottleCreditsForSensors(true, true, false, true) == 0 &&
+              bottleCreditsForSensors(false, true, true, true) == 0 &&
+              bottleCreditsForSensors(true, false, true, true) == 0, "Bottle credit tiers changed");
 
 static int pwmChannel(int pin) {
     const PinConfig& p = getPinConfig();
@@ -203,17 +205,17 @@ void updateVendingMachine() {
         bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
         bool sensorC = digitalRead(p.sensorC) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
         bool sensorD = digitalRead(p.sensorD) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
+        int detectedCredits = bottleCreditsForSensors(sensorA, sensorB, sensorC, sensorD);
         if (!bottleStorageFull && !bottleInFlight && !sensorA && !sensorB && !sensorC && !sensorD) collectionArmed = true;
         if (!bottleStorageFull && !bottleInFlight && collectionArmed && sensorA && sensorB) {
             if (!validationStarted) validationStarted = now;
-            else if (now - validationStarted >= BOTTLE_VALIDATION_TIME_MS) {
-                bottleInFlight = true; bottleCredits = bottleCreditsForSensors(sensorC, sensorD);
+            else if (now - validationStarted >= BOTTLE_VALIDATION_TIME_MS && detectedCredits) {
+                bottleInFlight = true; bottleCredits = detectedCredits;
                 collectionArmed = false;
                 validationStarted = 0; door(true);
             }
         } else if (!bottleInFlight) validationStarted = 0;
         if (bottleInFlight) {
-            int detectedCredits = bottleCreditsForSensors(sensorC, sensorD);
             if (detectedCredits > bottleCredits) bottleCredits = detectedCredits;
         }
         if (bottleInFlight && !sensorA && !sensorB && !sensorC && !sensorD) {
