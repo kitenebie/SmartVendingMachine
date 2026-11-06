@@ -110,10 +110,10 @@ void setBottleCollectionEnabled(bool enabled) {
     collectionEnabled = enabled;
     if (enabled) {
         const PinConfig& p = getPinConfig();
-        collectionArmed = digitalRead(p.sensorA) != BOTTLE_SENSOR_ACTIVE_LEVEL &&
-                          digitalRead(p.sensorB) != BOTTLE_SENSOR_ACTIVE_LEVEL &&
-                          digitalRead(p.sensorC) != BOTTLE_SENSOR_ACTIVE_LEVEL &&
-                          digitalRead(p.sensorD) != BOTTLE_SENSOR_ACTIVE_LEVEL;
+        collectionArmed = digitalRead(p.sensorA) != BOTTLE_SENSOR_AB_ACTIVE_LEVEL &&
+                          digitalRead(p.sensorB) != BOTTLE_SENSOR_AB_ACTIVE_LEVEL &&
+                          digitalRead(p.sensorC) != BOTTLE_SENSOR_CD_ACTIVE_LEVEL &&
+                          digitalRead(p.sensorD) != BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
     } else {
         validationStarted = 0; bottleInFlight = false; bottleReady = false; bottleCredits = 0;
         collectionArmed = false;
@@ -199,10 +199,10 @@ void updateVendingMachine() {
         dispensingSlot = 0;
     }
     if (collectionEnabled) {
-        bool sensorA = digitalRead(p.sensorA) == BOTTLE_SENSOR_ACTIVE_LEVEL;
-        bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_ACTIVE_LEVEL;
-        bool sensorC = digitalRead(p.sensorC) == BOTTLE_SENSOR_ACTIVE_LEVEL;
-        bool sensorD = digitalRead(p.sensorD) == BOTTLE_SENSOR_ACTIVE_LEVEL;
+        bool sensorA = digitalRead(p.sensorA) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
+        bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
+        bool sensorC = digitalRead(p.sensorC) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
+        bool sensorD = digitalRead(p.sensorD) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
         if (!bottleStorageFull && !bottleInFlight && !sensorA && !sensorB && !sensorC && !sensorD) collectionArmed = true;
         if (!bottleStorageFull && !bottleInFlight && collectionArmed && sensorA && sensorB) {
             if (!validationStarted) validationStarted = now;

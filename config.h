@@ -30,7 +30,8 @@
 #define BUZZER_PIN                 5  // Active buzzer control; drive through a transistor
 #define BUZZER_ALERT_MS            500
 #define BOTTLE_DEBOUNCE_MS         150
-#define BOTTLE_SENSOR_ACTIVE_LEVEL HIGH // Change to LOW only for inverted sensor modules
+#define BOTTLE_SENSOR_AB_ACTIVE_LEVEL HIGH
+#define BOTTLE_SENSOR_CD_ACTIVE_LEVEL LOW
 
 // ---- Product Selection Buttons (4 Buttons) -----------------
 #define PIN_BTN_1       13     // Product 1 button — board pin P13 / GPIO 13 (internal pull-up)

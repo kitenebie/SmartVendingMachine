@@ -146,7 +146,10 @@ $('passwordForm').onsubmit = async event => {
   } catch (error) { message(error.message); }
 };
 if (!token()) location.href = '/login.html';
-else refresh().catch(() => location.href = '/login.html');
+else refresh().catch(error => {
+  if (error.message === 'unauthorized') location.href = '/login.html';
+  else message(error.message);
+});
 </script>
 </body>
 </html>
