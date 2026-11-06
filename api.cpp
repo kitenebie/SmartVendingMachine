@@ -464,33 +464,22 @@ bool setupAPI(AsyncWebServer& server) {
         return false;
     }
 
-    // Load stored bottle count
     Preferences prefs;
+    if (!prefs.begin("bottle-store", false)) {
+        Serial.println("[Storage] ERROR: Cannot open bottle-store namespace.");
+        return false;
+    }
+    if (!prefs.isKey("count") && prefs.putUInt("count", 0) != sizeof(uint32_t)) {
+        Serial.println("[Storage] ERROR: Cannot initialize bottle count.");
+        prefs.end();
+        return false;
+    }
+    storedBottleCount = prefs.getUInt("count", 0);
+    prefs.end();
 
-// Open Preferences in read/write mode
-if (!prefs.begin("bottle-store", false)) {
-    Serial.println("[Storage] ERROR: Cannot open bottle-store namespace");
-    return false;
-}
-
-// Read stored bottle count
-storedBottleCount = prefs.getUInt("count", 0);
-
-prefs.end();
-
-// Check storage capacity
-bottleCountSaveFailed =
-    (storedBottleCount > BOTTLE_STORAGE_CAPACITY);
-
-setBottleStorageFull(
-    storedBottleCount >= BOTTLE_STORAGE_CAPACITY ||
-    bottleCountSaveFailed
-);
-
-Serial.printf("[Storage] Stored bottle count: %u\n",
-              storedBottleCount);
-
-Serial.println("[Storage] Bottle preferences loaded successfully.");
+    bottleCountSaveFailed = storedBottleCount > BOTTLE_STORAGE_CAPACITY;
+    setBottleStorageFull(storedBottleCount >= BOTTLE_STORAGE_CAPACITY || bottleCountSaveFailed);
+    Serial.printf("[Storage] Stored bottle count: %u\n", storedBottleCount);
     // =========================
     // AUTHENTICATION API
     // =========================
