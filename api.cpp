@@ -453,46 +453,218 @@ void updateReverseVending() {
 }
 
 bool setupAPI(AsyncWebServer& server) {
-    apiMutex = xSemaphoreCreateMutex();
-    if (!apiMutex) return false;
+
+    // Initialize API mutex
+    if (apiMutex == nullptr) {
+        apiMutex = xSemaphoreCreateMutex();
+    }
+
+    if (apiMutex == nullptr) {
+        Serial.println("ERROR: Failed to create API mutex");
+        return false;
+    }
+
+    // Load stored bottle count
     Preferences prefs;
-    if (!prefs.begin("bottle-store", true)) return false;
-    storedBottleCount = prefs.getUInt("count", 0);
-    prefs.end();
-    bottleCountSaveFailed = storedBottleCount > BOTTLE_STORAGE_CAPACITY;
-    setBottleStorageFull(storedBottleCount >= BOTTLE_STORAGE_CAPACITY || bottleCountSaveFailed);
-    server.on("/api/register", HTTP_POST, emptyBody, nullptr, handleRegister);
-    server.on("/api/login", HTTP_POST, emptyBody, nullptr, handleLogin);
-    server.on("/api/logout", HTTP_POST, handleLogout);
-    server.on("/api/me", HTTP_GET, handleMe);
-    server.on("/api/user/password", HTTP_POST, emptyBody, nullptr, handlePassword);
-    server.on("/api/products", HTTP_GET, handleProducts);
-    server.on("/api/products", HTTP_POST, emptyBody, nullptr, handleAddProduct);
-    server.on("/api/products", HTTP_PUT, emptyBody, nullptr, handleUpdateProduct);
-    server.on("/api/products", HTTP_DELETE, handleDeleteProduct);
-    server.on("/api/session/start", HTTP_POST, handleStart);
-    server.on("/api/session/end", HTTP_POST, handleEnd);
-    server.on("/api/session/status", HTTP_GET, handleStatus);
-    server.on("/api/redeem", HTTP_POST, emptyBody, nullptr, handleRedeem);
-    server.on("/api/admin/users", HTTP_GET, handleAdminUsers);
-    server.on("/api/admin/log", HTTP_GET, handleAdminLog);
-    server.on("/api/admin/credits", HTTP_POST, emptyBody, nullptr, handleAdminCredits);
-    server.on("/api/admin/storage", HTTP_GET, handleAdminStorage);
-    server.on("/api/admin/storage/reset", HTTP_POST, handleAdminStorageReset);
-    server.on("/api/admin/wifi", HTTP_GET, handleAdminWiFi);
-    server.on("/api/admin/wifi", HTTP_POST, emptyBody, nullptr, handleAdminWiFiSave);
-    server.on("/api/admin/time", HTTP_POST, emptyBody, nullptr, handleAdminTimeSync);
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/login.html"); });
-    server.on("/login.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/login.html", "text/html"); });
-    server.on("/test.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/test.html", "text/html"); });
-    server.on("/admin-test.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/admin-test.html", "text/html"); });
-    server.on("/login-test.html", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/login-test.html", "text/html"); });
-    server.on("/product-sprite.png", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/product-sprite.png", "image/png"); });
-    server.on("/eco-background.jpg", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/eco-background.jpg", "image/jpeg"); });
-    server.on("/login-background.jpg", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/login-background.jpg", "image/jpeg"); });
-    server.on("/portal", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/portal.html", "text/html"); });
-    server.on("/admin", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/admin.html", "text/html"); });
-    server.on("/js/auth.js", HTTP_GET, [](AsyncWebServerRequest* request) { request->send(LittleFS, "/js/auth.js", "text/javascript"); });
-    server.onNotFound([](AsyncWebServerRequest* request) { sendError(request, 404, "not_found"); });
+
+// Open Preferences in read/write mode
+if (!prefs.begin("bottle-store", false)) {
+    Serial.println("[Storage] ERROR: Cannot open bottle-store namespace");
+    return false;
+}
+
+// Read stored bottle count
+storedBottleCount = prefs.getUInt("count", 0);
+
+prefs.end();
+
+// Check storage capacity
+bottleCountSaveFailed =
+    (storedBottleCount > BOTTLE_STORAGE_CAPACITY);
+
+setBottleStorageFull(
+    storedBottleCount >= BOTTLE_STORAGE_CAPACITY ||
+    bottleCountSaveFailed
+);
+
+Serial.printf("[Storage] Stored bottle count: %u\n",
+              storedBottleCount);
+
+Serial.println("[Storage] Bottle preferences loaded successfully.");
+    // =========================
+    // AUTHENTICATION API
+    // =========================
+
+    server.on("/api/register", HTTP_POST,
+        emptyBody, nullptr, handleRegister);
+
+    server.on("/api/login", HTTP_POST,
+        emptyBody, nullptr, handleLogin);
+
+    server.on("/api/logout", HTTP_POST,
+        handleLogout);
+
+    server.on("/api/me", HTTP_GET,
+        handleMe);
+
+    server.on("/api/user/password", HTTP_POST,
+        emptyBody, nullptr, handlePassword);
+
+
+    // =========================
+    // PRODUCT API
+    // =========================
+
+    server.on("/api/products", HTTP_GET,
+        handleProducts);
+
+    server.on("/api/products", HTTP_POST,
+        emptyBody, nullptr, handleAddProduct);
+
+    server.on("/api/products", HTTP_PUT,
+        emptyBody, nullptr, handleUpdateProduct);
+
+    server.on("/api/products", HTTP_DELETE,
+        handleDeleteProduct);
+
+
+    // =========================
+    // SESSION API
+    // =========================
+
+    server.on("/api/session/start", HTTP_POST,
+        handleStart);
+
+    server.on("/api/session/end", HTTP_POST,
+        handleEnd);
+
+    server.on("/api/session/status", HTTP_GET,
+        handleStatus);
+
+
+    // =========================
+    // REDEEM API
+    // =========================
+
+    server.on("/api/redeem", HTTP_POST,
+        emptyBody, nullptr, handleRedeem);
+
+
+    // =========================
+    // ADMIN API
+    // =========================
+
+    server.on("/api/admin/users", HTTP_GET,
+        handleAdminUsers);
+
+    server.on("/api/admin/log", HTTP_GET,
+        handleAdminLog);
+
+    server.on("/api/admin/credits", HTTP_POST,
+        emptyBody, nullptr, handleAdminCredits);
+
+    server.on("/api/admin/storage", HTTP_GET,
+        handleAdminStorage);
+
+    server.on("/api/admin/storage/reset", HTTP_POST,
+        handleAdminStorageReset);
+
+    server.on("/api/admin/wifi", HTTP_GET,
+        handleAdminWiFi);
+
+    server.on("/api/admin/wifi", HTTP_POST,
+        emptyBody, nullptr, handleAdminWiFiSave);
+
+    server.on("/api/admin/time", HTTP_POST,
+        emptyBody, nullptr, handleAdminTimeSync);
+
+
+    // =========================
+    // HTML PAGES
+    // =========================
+
+    server.on("/", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->redirect("/login.html");
+        });
+
+    server.on("/login.html", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/login.html", "text/html");
+        });
+
+    server.on("/test.html", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/test.html", "text/html");
+        });
+
+    server.on("/admin-test.html", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/admin-test.html", "text/html");
+        });
+
+    server.on("/login-test.html", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/login-test.html", "text/html");
+        });
+
+
+    // =========================
+    // IMAGE FILES
+    // =========================
+
+    server.on("/product-sprite.png", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/product-sprite.png", "image/png");
+        });
+
+    server.on("/eco-background.jpg", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/eco-background.jpg", "image/jpeg");
+        });
+
+    server.on("/login-background.jpg", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/login-background.jpg", "image/jpeg");
+        });
+
+
+    // =========================
+    // PORTAL AND ADMIN PAGES
+    // =========================
+
+    server.on("/portal", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/portal.html", "text/html");
+        });
+
+    server.on("/admin", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/admin.html", "text/html");
+        });
+
+
+    // =========================
+    // JAVASCRIPT FILES
+    // =========================
+
+    server.on("/js/auth.js", HTTP_GET,
+        [](AsyncWebServerRequest* request) {
+            request->send(LittleFS, "/js/auth.js", "text/javascript");
+        });
+
+
+    // =========================
+    // 404 HANDLER
+    // =========================
+
+    server.onNotFound(
+        [](AsyncWebServerRequest* request) {
+            sendError(request, 404, "not_found");
+        }
+    );
+
+    Serial.println("API routes registered successfully.");
+
     return true;
 }
