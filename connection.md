@@ -33,8 +33,8 @@ Vector version: [sensor-buzzer-wiring.svg](diagrams/sensor-buzzer-wiring.svg).
 |:---|:---|:---|:---|:---|:---|
 | **Bottle Proximity Sensor A** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 34 / P34** | `OUT` must be 3.3V max; use a divider/level shifter if its output is 5V. |
 | **Bottle Proximity Sensor B** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 35 / P35** | Same voltage protection as Sensor A; both sensors validate one bottle. |
-| **Bottle Size Sensor C** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 36 / VP** | 3.3V max; input-only pin, add an external pull resistor if the output floats. |
-| **Bottle Size Sensor D** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 39 / VN** | Same signal requirements as Sensor C. |
+| **Bottle Size Sensor C** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 2** | 3.3V-safe output required; boot strapping pin. |
+| **Bottle Size Sensor D** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 15** | 3.3V-safe output required; boot strapping pin. |
 | **3-pin Active Buzzer** | Supply rated for the buzzer module | Common GND | Per module; signal input must be 3.3V-compatible | `SIG/S` → **GPIO 5** | GPIO 5 is a boot-strap pin; avoid modules that pull it during reset. |
 | **Product 1 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 13 / P13** | Do **not** connect this button to 5V. |
 | **Product 2 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 14 / P14** | Do **not** connect this button to 5V. |
@@ -106,8 +106,8 @@ Ang 20x4 Character LCD na may I2C Backpack ay gumagamit lamang ng **4 na wires**
      |                                                                        |
      |   [GPIO 34] <--- Bottle Sensor A OUT (3.3V safe)                       |
      |   [GPIO 35] <--- Bottle Sensor B OUT (3.3V safe)                       |
-     |   [GPIO 36] <--- Bottle Sensor C OUT (3.3V safe)                       |
-     |   [GPIO 39] <--- Bottle Sensor D OUT (3.3V safe)                       |
+     |   [GPIO  2] <--- Bottle Sensor C OUT (3.3V safe)                       |
+     |   [GPIO 15] <--- Bottle Sensor D OUT (3.3V safe)                       |
      |   [GPIO 16] <--- IR Drop 1 OUT (3.3V safe)                             |
      |   [GPIO 17] <--- IR Drop 2 OUT (3.3V safe)                             |
      |   [GPIO 32] <--- IR Drop 3 OUT (3.3V safe)                             |
@@ -175,8 +175,8 @@ Connect the **GND of the External 5V Power Supply** directly to an **ESP32 GND p
 ### Step 5: Connect Bottle Detection Proximity Sensors
 - **Sensor A (Upper)** Signal → **GPIO 34**
 - **Sensor B (Lower)** Signal → **GPIO 35**
-- **Sensor C** Signal → **GPIO 36**
-- **Sensor D** Signal → **GPIO 39**
+- **Sensor C** Signal → **GPIO 2**
+- **Sensor D** Signal → **GPIO 15**
 - Sensor VCC & GND to 5V & Common GND.
 
 ### Step 6: Connect the 4 IR Drop / Fall Sensors

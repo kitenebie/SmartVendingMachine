@@ -7,7 +7,7 @@
 
 static SemaphoreHandle_t hardwareMutex;
 static bool collectionEnabled = false, bottleInFlight = false, bottleReady = false, doorOpen = false;
-// GPIO 34/35/36/39 can float active; wait for all four sensors to clear before accepting a bottle.
+// Wait for all four sensors to clear before accepting a bottle.
 static bool collectionArmed = false;
 static bool bottleStorageFull = false;
 static uint32_t validationStarted = 0, dispenseStartedAt = 0, buzzerOffAt = 0;

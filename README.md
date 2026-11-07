@@ -15,7 +15,7 @@ The old [Plan.jpg](Plan.jpg) is a **concept sketch, not a wiring schematic**. It
 | Tube door servo | 4 |
 | LCD SDA, SCL | 23, 22 |
 
-Buttons use internal pullups and connect to ground when pressed. The drop sensors are configured active LOW. Bottle sensors A/B are configured active HIGH and C/D active LOW; check each sensor's output signal and adjust the levels in [config.h](config.h) if needed. GPIO 34, 35, 36 and 39 have **no internal pullups**; open-collector sensors on those pins require external 3.3 V pullups. Set the door angles and continuous-rotation dispenser stop/push duty values in `config.h` for your mechanism before stocking the machine.
+Buttons use internal pullups and connect to ground when pressed. The drop sensors are configured active LOW. Bottle sensors A–D are configured active HIGH; check each sensor's output signal and adjust the levels in [config.h](config.h) if needed. GPIO 34, 35, 36 and 39 have **no internal pullups**; open-collector sensors on those pins require external 3.3 V pullups. Set the door angles and continuous-rotation dispenser stop/push duty values in `config.h` for your mechanism before stocking the machine.
 
 ## Build and first start
 
@@ -29,7 +29,7 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 ## Dispensing behavior
 
 - The tube door opens after Sensors A and B detect a bottle for 200 ms, then closes once all four sensors are clear; it also closes when the session ends or times out.
-- Bottle credit is sensor-based: A+B = 1, A+B+C = 3, and A+B+C+D = 5. Sensors C and D default to GPIO 36 and 39.
+- Bottle credit is sensor-based: A+B = 1, A+B+C = 3, and A+B+C+D = 5. Sensors C and D default to GPIO 2 and 15; both are boot strapping pins, so sensor output levels can affect boot or firmware upload.
 - Bottle storage count persists across restarts and stops collection at 100 bottles. Admins can reset the count after physically emptying the storage.
 - An active buzzer on GPIO 5 sounds for 500 ms when bottle storage reaches capacity. Drive it through a transistor; GPIO 5 is a boot-strap pin, so the buzzer circuit must not pull it during reset.
 - A product button works only while that account's 60-second bottle session is active. The web portal can also request one item.

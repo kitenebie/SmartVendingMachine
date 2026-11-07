@@ -23,15 +23,15 @@
 // ---- Bottle Detection Proximity Sensors -------------------
 #define PIN_SENSOR_A    34     // Upper proximity sensor — board pin P34 / GPIO 34 (input only)
 #define PIN_SENSOR_B    35     // Lower proximity sensor — board pin P35 / GPIO 35 (input only)
-#define PIN_SENSOR_C    36     // Bottle size sensor C — GPIO 36 (input only)
-#define PIN_SENSOR_D    39     // Bottle size sensor D — GPIO 39 (input only)
+#define PIN_SENSOR_C    2      // Bottle size sensor C — GPIO 2 (boot strap)
+#define PIN_SENSOR_D    15     // Bottle size sensor D — GPIO 15 (boot strap)
 #define BOTTLE_VALIDATION_TIME_MS  200   // Sensors A and B must be active for this duration
 #define BOTTLE_STORAGE_CAPACITY    100
 #define BUZZER_PIN                 5  // Active buzzer control; drive through a transistor
 #define BUZZER_ALERT_MS            500
 #define BOTTLE_DEBOUNCE_MS         150
 #define BOTTLE_SENSOR_AB_ACTIVE_LEVEL HIGH
-#define BOTTLE_SENSOR_CD_ACTIVE_LEVEL LOW
+#define BOTTLE_SENSOR_CD_ACTIVE_LEVEL HIGH
 
 // ---- Product Selection Buttons (4 Buttons) -----------------
 #define PIN_BTN_1       13     // Product 1 button — board pin P13 / GPIO 13 (internal pull-up)

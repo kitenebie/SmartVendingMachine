@@ -35,7 +35,7 @@ static PinConfig s_pins = {
 };
 
 bool isValidGpio(int pin, bool allowInputOnly) {
-    const int usable[] = {4, 13, 14, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33, 34, 35, 36, 39};
+    const int usable[] = {2, 4, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33, 34, 35, 36, 39};
     bool found = false;
     for (int value : usable) if (value == pin) found = true;
     return found && (allowInputOnly || (pin != 34 && pin != 35 && pin != 36 && pin != 39));
@@ -103,13 +103,16 @@ bool initPinConfig() {
     if (s_pins.ir1 == 36) { s_pins.ir1 = 16; migratedIrPins = true; }
     if (s_pins.ir2 == 39) { s_pins.ir2 = 17; migratedIrPins = true; }
 
+    bool migratedBottlePins = s_pins.sensorC == 36 && s_pins.sensorD == 39;
+    if (migratedBottlePins) { s_pins.sensorC = PIN_SENSOR_C; s_pins.sensorD = PIN_SENSOR_D; }
+
     if (!validConfig(s_pins)) {
         Serial.println("[PinConfig] Invalid or duplicate GPIO assignment.");
         return false;
     }
-    if (migratedIrPins) {
+    if (migratedIrPins || migratedBottlePins) {
         if (!savePinConfig(s_pins)) return false;
-        Serial.println("[PinConfig] Migrated IR 1/IR 2 from VP/VN to P16/P17.");
+        Serial.println("[PinConfig] Migrated previous sensor pin assignments.");
     }
 
     Serial.println("[PinConfig] Custom GPIO pins loaded successfully from LittleFS.");
