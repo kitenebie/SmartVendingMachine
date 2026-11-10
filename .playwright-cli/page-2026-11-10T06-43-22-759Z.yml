@@ -1,0 +1,35 @@
+- generic [active] [ref=f3e1]:
+  - banner [ref=f3e2]:
+    - generic [ref=f3e3]:
+      - generic [aria-hidden] [ref=f3e4]: ♻
+      - generic [ref=f3e5]:
+        - strong [ref=f3e6]: Reverse-Vending Machine
+        - generic [ref=f3e7]: User Portal
+  - main [ref=f3e8]:
+    - generic [ref=f3e9]:
+      - generic [ref=f3e10]:
+        - generic [ref=f3e15]: Your Credits
+        - strong [ref=f3e16]: "30"
+      - button "Insert Bottle" [ref=f3e17] [cursor=pointer]
+      - paragraph [ref=f3e22]: Tap when you insert a bottle into the machine.
+      - status [ref=f3e23]: Vending ready.
+      - status [ref=f3e24]
+    - generic [ref=f3e25]:
+      - heading "How to use" [level=2] [ref=f3e26]
+      - list [ref=f3e27]:
+        - listitem [ref=f3e28]:
+          - text: Tap
+          - strong [ref=f3e29]: Insert Bottle
+          - text: to start.
+        - listitem [ref=f3e30]: Drop your bottle into the machine.
+        - listitem [ref=f3e31]: Wait for the sensors and credits to update.
+        - listitem [ref=f3e32]:
+          - text: Tap
+          - strong [ref=f3e33]: Finish session
+          - text: when finished.
+    - generic [ref=f3e34]:
+      - heading "Redeem Product" [level=2] [ref=f3e35]
+      - list [ref=f3e39]
+    - generic [ref=f3e40]:
+      - button "Change Password" [ref=f3e41] [cursor=pointer]
+      - button "Logout" [ref=f3e46] [cursor=pointer]

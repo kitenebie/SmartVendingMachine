@@ -12,6 +12,7 @@
 #include <sys/time.h>
 
 static DNSServer captiveDns;
+static bool stationConfigured;
 
 bool loadStationCredentials(String& ssid, String& password) {
     Preferences prefs;
@@ -31,7 +32,9 @@ bool saveStationCredentials(const String& ssid, const String& password) {
 
 void connectToStation(const String& ssid, const String& password) {
     if (ssid.isEmpty()) return;
+    stationConfigured = true;
     WiFi.setAutoReconnect(true);
+    WiFi.disconnect(false, false);
     WiFi.begin(ssid.c_str(), password.c_str());
     configTzTime("PST-8", "pool.ntp.org", "time.nist.gov");
     Serial.printf("[WiFi] Connecting to configured network: %s\n", ssid.c_str());
@@ -45,6 +48,7 @@ const char* stationStatus() {
         case WL_NO_SSID_AVAIL: return "ssid_not_found";
         case WL_CONNECT_FAILED: return "connection_failed";
         case WL_CONNECTION_LOST: return "connection_lost";
+        case WL_DISCONNECTED: return stationConfigured ? "connecting" : "disconnected";
         default: return "disconnected";
     }
 }

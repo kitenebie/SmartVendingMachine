@@ -1,0 +1,31 @@
+- generic [active] [ref=f2e1]:
+  - banner [ref=f2e2]:
+    - link [ref=f2e3] [cursor=pointer]:
+      - /url: /admin
+      - generic [ref=f2e7]: Reverse VendingMachine control
+    - generic [ref=f2e8]:
+      - generic [ref=f2e9]: ESP32 machine
+      - button "Log out" [ref=f2e10] [cursor=pointer]
+  - generic [ref=f2e11]:
+    - navigation "Admin sections" [ref=f2e12]:
+      - button "Overview" [ref=f2e13] [cursor=pointer]
+      - button "Settings" [ref=f2e14] [cursor=pointer]
+      - button "Products" [ref=f2e15] [cursor=pointer]
+      - button "Users" [ref=f2e16] [cursor=pointer]
+      - button "Clients" [ref=f2e17] [cursor=pointer]
+      - button "Activity" [ref=f2e18] [cursor=pointer]
+      - button "Account" [ref=f2e19] [cursor=pointer]
+    - main [ref=f2e20]:
+      - generic [ref=f2e21]:
+        - generic [ref=f2e22]:
+          - heading "Machine administration" [level=1] [ref=f2e23]
+          - paragraph [ref=f2e24]: Manage products, rewards, and machine settings.
+        - generic [ref=f2e25]: ESP32 · Connected
+      - status [ref=f2e28]
+      - region "Bottle storage" [ref=f2e30]:
+        - heading "Bottle storage" [level=2] [ref=f2e31]
+        - generic [ref=f2e34]: Loading…
+        - paragraph [ref=f2e37]: Buzzer sounds when storage reaches capacity.
+        - generic [ref=f2e38]:
+          - button "Reset count to 0" [ref=f2e39] [cursor=pointer]
+          - generic [ref=f2e40]: Empty the physical bin first.

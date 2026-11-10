@@ -1,0 +1,4 @@
+[     212ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8768/js/auth.js:1
+[     248ms] ReferenceError: token is not defined
+    at http://127.0.0.1:8768/data/login.html:72:1
+[     332ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8768/favicon.ico:1
