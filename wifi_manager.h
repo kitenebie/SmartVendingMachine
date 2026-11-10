@@ -10,6 +10,8 @@ bool loadStationCredentials(String& ssid, String& password);
 bool saveStationCredentials(const String& ssid, const String& password);
 void connectToStation(const String& ssid, const String& password);
 bool stationConnected();
+const char* stationStatus();
+void processCaptiveDns();
 bool timeSynchronized();
 bool setSystemTime(uint32_t epochSeconds);
 

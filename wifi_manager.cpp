@@ -6,9 +6,12 @@
 // ============================================================
 #include "wifi_manager.h"
 #include <WiFi.h>
+#include <DNSServer.h>
 #include <Preferences.h>
 #include <time.h>
 #include <sys/time.h>
+
+static DNSServer captiveDns;
 
 bool loadStationCredentials(String& ssid, String& password) {
     Preferences prefs;
@@ -28,12 +31,23 @@ bool saveStationCredentials(const String& ssid, const String& password) {
 
 void connectToStation(const String& ssid, const String& password) {
     if (ssid.isEmpty()) return;
+    WiFi.setAutoReconnect(true);
     WiFi.begin(ssid.c_str(), password.c_str());
     configTzTime("PST-8", "pool.ntp.org", "time.nist.gov");
     Serial.printf("[WiFi] Connecting to configured network: %s\n", ssid.c_str());
 }
 
 bool stationConnected() { return WiFi.status() == WL_CONNECTED; }
+const char* stationStatus() {
+    switch (WiFi.status()) {
+        case WL_CONNECTED: return "connected";
+        case WL_IDLE_STATUS: return "connecting";
+        case WL_NO_SSID_AVAIL: return "ssid_not_found";
+        case WL_CONNECT_FAILED: return "connection_failed";
+        case WL_CONNECTION_LOST: return "connection_lost";
+        default: return "disconnected";
+    }
+}
 bool timeSynchronized() { return time(nullptr) >= 1700000000; }
 bool setSystemTime(uint32_t epochSeconds) {
     if (epochSeconds < 1700000000UL) return false;
@@ -71,6 +85,7 @@ bool startAccessPoint(const char* ssid,
     }
 
     delay(100); // give the AP a moment to initialise
+    if (!captiveDns.start(53, "*", WiFi.softAPIP())) Serial.println("[WiFi] WARNING: Captive DNS could not start.");
 
     IPAddress ip = WiFi.softAPIP();
     Serial.println("[WiFi] Access Point started!");
@@ -82,6 +97,8 @@ bool startAccessPoint(const char* ssid,
 
     return true;
 }
+
+void processCaptiveDns() { captiveDns.processNextRequest(); }
 
 String getLocalIP() {
     return WiFi.softAPIP().toString();

@@ -53,7 +53,7 @@ $('login').onsubmit = async event => {
   event.preventDefault();
   try {
     const result = await api('/api/login', {method:'POST', body:JSON.stringify({username:$('username').value, password:$('password').value})});
-    sessionStorage.setItem('rvm_token', result.token);
+    localStorage.setItem('rvm_token', result.token);
     location.href = result.user.role === 'admin' ? '/admin' : '/portal';
   } catch (error) { $('message').textContent = error.message; }
 };
@@ -69,6 +69,8 @@ $('register').onsubmit = async event => {
     $('message').textContent = 'Account created. Log in to continue.';
   } catch (error) { $('message').textContent = error.message; }
 };
+if (token()) api('/api/me').then(({user}) => location.replace(user.role === 'admin' ? '/admin' : '/portal'))
+  .catch(() => localStorage.removeItem('rvm_token'));
 </script>
 </body>
 </html>

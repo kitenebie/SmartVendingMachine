@@ -111,6 +111,7 @@ void loop() {
     // Non-blocking state machine updates (Bottle detection, buttons, servos, IR sensors)
     updateVendingMachine();
     updateReverseVending();
+    processCaptiveDns();
 
     // Small delay to prevent task starvation
     delay(5);

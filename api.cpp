@@ -9,6 +9,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <Preferences.h>
+#include <esp_wifi.h>
 #include <time.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -39,6 +40,8 @@ static int bottleCreditsWaiting = 0;
 static uint32_t storedBottleCount = 0;
 static bool bottleCountSaveFailed = false;
 static uint32_t lastCommitRetry = 0;
+struct SeenClient { String mac; uint32_t lastSeen = 0; };
+static SeenClient seenClients[AP_MAX_CONN];
 
 static bool saveBottleCount(uint32_t count) {
     Preferences prefs;
@@ -332,8 +335,40 @@ static void handleAdminStorageReset(AsyncWebServerRequest* request) {
 static void handleAdminWiFi(AsyncWebServerRequest* request) {
     ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
     String ssid, password; loadStationCredentials(ssid, password);
-    JsonDocument result; result["ssid"] = ssid; result["connected"] = stationConnected(); result["time_synced"] = timeSynchronized();
+    JsonDocument result; result["ssid"] = ssid; result["connected"] = stationConnected(); result["connection_status"] = stationStatus(); result["time_synced"] = timeSynchronized();
     result["current_epoch"] = timeSynchronized() ? static_cast<uint32_t>(time(nullptr)) : 0;
+    sendJson(request, 200, result);
+}
+static void handleAdminClients(AsyncWebServerRequest* request) {
+    ApiLock lock; User* user; if (!requireAdmin(request, user)) return;
+    wifi_sta_list_t stations{};
+    if (esp_wifi_ap_get_sta_list(&stations) != ESP_OK) { sendError(request, 500, "client_list_unavailable"); return; }
+    JsonDocument result;
+    JsonArray clients = result["clients"].to<JsonArray>();
+    for (int i = 0; i < stations.num; ++i) {
+        char mac[18];
+        snprintf(mac, sizeof(mac), "%02X:%02X:%02X:%02X:%02X:%02X",
+            stations.sta[i].mac[0], stations.sta[i].mac[1], stations.sta[i].mac[2],
+            stations.sta[i].mac[3], stations.sta[i].mac[4], stations.sta[i].mac[5]);
+        int slot = -1;
+        for (int j = 0; j < AP_MAX_CONN; ++j) if (seenClients[j].mac == mac) { slot = j; break; }
+        if (slot < 0) for (int j = 0; j < AP_MAX_CONN; ++j) if (seenClients[j].mac.isEmpty()) { slot = j; break; }
+        if (slot < 0) {
+            slot = 0;
+            for (int j = 1; j < AP_MAX_CONN; ++j) if ((int32_t)(seenClients[j].lastSeen - seenClients[slot].lastSeen) < 0) slot = j;
+        }
+        seenClients[slot].mac = mac; seenClients[slot].lastSeen = millis();
+    }
+    for (const SeenClient& client : seenClients) if (!client.mac.isEmpty()) {
+        JsonObject item = clients.add<JsonObject>();
+        item["mac"] = client.mac;
+        item["connected"] = millis() - client.lastSeen < 5000;
+    }
+    int32_t remaining = active.locked ? (int32_t)(active.expiresAt - millis()) : 0;
+    User* activeUser = active.locked && remaining > 0 ? findUserById(active.userId) : nullptr;
+    result["insert_available"] = !activeUser;
+    result["active_username"] = activeUser ? activeUser->firstname + " " + activeUser->lastname : "";
+    result["remaining_seconds"] = remaining > 0 ? (remaining + 999) / 1000 : 0;
     sendJson(request, 200, result);
 }
 static void handleAdminWiFiSave(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total) {
@@ -550,6 +585,8 @@ bool setupAPI(AsyncWebServer& server) {
 
     server.on("/api/admin/users", HTTP_GET,
         handleAdminUsers);
+    server.on("/api/admin/clients", HTTP_GET,
+        handleAdminClients);
 
     server.on("/api/admin/log", HTTP_GET,
         handleAdminLog);
@@ -652,11 +689,10 @@ bool setupAPI(AsyncWebServer& server) {
     // 404 HANDLER
     // =========================
 
-    server.onNotFound(
-        [](AsyncWebServerRequest* request) {
-            sendError(request, 404, "not_found");
-        }
-    );
+    server.onNotFound([](AsyncWebServerRequest* request) {
+        if (request->url().startsWith("/api/")) sendError(request, 404, "not_found");
+        else request->redirect("/login.html");
+    });
 
     Serial.println("API routes registered successfully.");
 
