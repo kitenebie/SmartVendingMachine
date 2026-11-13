@@ -6,13 +6,10 @@
 #include <freertos/semphr.h>
 
 static SemaphoreHandle_t hardwareMutex;
-static bool collectionEnabled = false, bottleInFlight = false, bottleReady = false, doorOpen = false;
-static bool doorOpenPending = false, doorClosePending = false, hasCompletedBottle = false;
-// Wait for all four sensors to clear before accepting a bottle.
-static bool collectionArmed = false;
+static bool collectionEnabled = false, bottleReady = false, doorOpen = false, doorCycleActive = false;
 static bool bottleStorageFull = false;
-static uint32_t validationStarted = 0, dispenseStartedAt = 0, buzzerOffAt = 0;
-static uint32_t doorOpenStartedAt = 0, doorCloseStartedAt = 0, lastBottleCompletedAt = 0;
+static uint32_t dispenseStartedAt = 0, doorCycleStartedAt = 0;
+static int doorCountdownShown = 0;
 static int bottleCredits = 0;
 static uint8_t dispensingSlot = 0, buttonPress = 0;
 static uint8_t buttonRaw[4], buttonStable[4];
@@ -22,22 +19,7 @@ static const uint32_t SERVO_MIN = 3277, SERVO_MAX = 6553;
 static constexpr int bottleCreditsForSensors(bool sensorA, bool sensorB, bool sensorC, bool sensorD) {
     return !sensorA || !sensorB || (!sensorC && sensorD) ? 0 : sensorD ? 5 : sensorC ? 3 : 1;
 }
-static constexpr bool intervalElapsed(uint32_t now, uint32_t startedAt, uint32_t interval) {
-    return static_cast<uint32_t>(now - startedAt) >= interval;
-}
-static_assert(!intervalElapsed(4999, 0, 5000) && intervalElapsed(5000, 0, 5000) &&
-              intervalElapsed(4, UINT32_MAX - 4995, 5000) &&
-              !intervalElapsed(29999, 0, 30000) && intervalElapsed(30000, 0, 30000),
-              "Bottle and door timing changed");
-static bool bottleSensorsClear(const PinConfig& p) {
-    return digitalRead(p.sensorA) != BOTTLE_SENSOR_AB_ACTIVE_LEVEL &&
-           digitalRead(p.sensorB) != BOTTLE_SENSOR_AB_ACTIVE_LEVEL &&
-           digitalRead(p.sensorC) != BOTTLE_SENSOR_CD_ACTIVE_LEVEL &&
-           digitalRead(p.sensorD) != BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
-}
-static bool bottleCooldownComplete(uint32_t now) {
-    return !hasCompletedBottle || intervalElapsed(now, lastBottleCompletedAt, BOTTLE_COOLDOWN_MS);
-}
+static_assert(DOOR_CYCLE_MS == 10000, "Door countdown must stay at 10 seconds");
 static_assert(bottleCreditsForSensors(true, true, false, false) == 1 &&
               bottleCreditsForSensors(true, true, true, false) == 3 &&
               bottleCreditsForSensors(true, true, true, true) == 5 &&
@@ -104,7 +86,6 @@ bool initVendingMachine() {
     hardwareMutex = xSemaphoreCreateMutex();
     if (!hardwareMutex) return false;
     const PinConfig& p = getPinConfig();
-    pinMode(BUZZER_PIN, OUTPUT); digitalWrite(BUZZER_PIN, LOW);
     pinMode(p.sensorA, INPUT); pinMode(p.sensorB, INPUT);
     pinMode(p.sensorC, INPUT); pinMode(p.sensorD, INPUT);
     const int buttons[4] = {p.btn1, p.btn2, p.btn3, p.btn4};
@@ -128,27 +109,15 @@ bool initVendingMachine() {
 void setBottleCollectionEnabled(bool enabled) {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
     collectionEnabled = enabled;
-    if (enabled) {
-        const PinConfig& p = getPinConfig();
-        collectionArmed = bottleSensorsClear(p) && bottleCooldownComplete(millis());
-    } else {
-        validationStarted = 0; bottleInFlight = false; bottleReady = false; bottleCredits = 0;
-        doorOpenPending = false; doorClosePending = false;
-        collectionArmed = false;
-        door(false);
-    }
+    if (enabled) door(false);
+    else if (!doorCycleActive) { bottleReady = false; bottleCredits = 0; door(false); }
     xSemaphoreGive(hardwareMutex);
 }
 void setBottleStorageFull(bool full) {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
     bottleStorageFull = full;
-    if (full && !bottleInFlight) { validationStarted = 0; collectionArmed = false; door(false); }
-    xSemaphoreGive(hardwareMutex);
-}
-void alertStorageFull() {
-    xSemaphoreTake(hardwareMutex, portMAX_DELAY);
-    digitalWrite(BUZZER_PIN, HIGH);
-    buzzerOffAt = millis() + BUZZER_ALERT_MS;
+    if (full) displayMessage("The Machine is Full");
+    else if (!doorCycleActive) displayMessage("Closed machine is", "Ready");
     xSemaphoreGive(hardwareMutex);
 }
 bool consumeValidatedBottle(int& credits) {
@@ -161,15 +130,51 @@ bool consumeValidatedBottle(int& credits) {
 }
 bool bottleDetectionPending() {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
-    bool pending = validationStarted || bottleInFlight || bottleReady || doorOpen || doorOpenPending || doorClosePending ||
-                   !bottleSensorsClear(getPinConfig());
+    bool pending = bottleReady || doorCycleActive;
     xSemaphoreGive(hardwareMutex);
     return pending;
 }
-uint32_t bottleCooldownSecondsRemaining() {
+int finishBottleCollection() {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
-    uint32_t elapsed = millis() - lastBottleCompletedAt;
-    uint32_t remaining = hasCompletedBottle && elapsed < BOTTLE_COOLDOWN_MS ? BOTTLE_COOLDOWN_MS - elapsed : 0;
+    if (!collectionEnabled || bottleStorageFull || bottleReady || doorCycleActive) {
+        xSemaphoreGive(hardwareMutex);
+        return -1;
+    }
+    const PinConfig& p = getPinConfig();
+    bool sensorA = digitalRead(p.sensorA) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
+    bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
+    bool sensorC = digitalRead(p.sensorC) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
+    bool sensorD = digitalRead(p.sensorD) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
+    bottleCredits = bottleCreditsForSensors(sensorA, sensorB, sensorC, sensorD);
+    if (!bottleCredits) {
+        bool noBottle = !sensorA && !sensorB && !sensorC && !sensorD;
+        xSemaphoreGive(hardwareMutex);
+        return noBottle ? 0 : -1;
+    }
+    collectionEnabled = false;
+    bottleReady = true;
+    int credits = bottleCredits;
+    xSemaphoreGive(hardwareMutex);
+    return credits;
+}
+bool startBottleDoorCycle() {
+    xSemaphoreTake(hardwareMutex, portMAX_DELAY);
+    if (doorCycleActive || bottleReady) {
+        xSemaphoreGive(hardwareMutex);
+        return false;
+    }
+    door(true);
+    doorCycleActive = true;
+    doorCycleStartedAt = millis();
+    doorCountdownShown = 10;
+    displayMessage("Door closing in:", "10 seconds");
+    xSemaphoreGive(hardwareMutex);
+    return true;
+}
+uint32_t bottleDoorSecondsRemaining() {
+    xSemaphoreTake(hardwareMutex, portMAX_DELAY);
+    uint32_t elapsed = millis() - doorCycleStartedAt;
+    uint32_t remaining = doorCycleActive && elapsed < DOOR_CYCLE_MS ? DOOR_CYCLE_MS - elapsed : 0;
     xSemaphoreGive(hardwareMutex);
     return (remaining + 999) / 1000;
 }
@@ -205,10 +210,6 @@ uint8_t takeButtonPress() {
 void updateVendingMachine() {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
     uint32_t now = millis();
-    if (buzzerOffAt && (int32_t)(now - buzzerOffAt) >= 0) {
-        digitalWrite(BUZZER_PIN, LOW);
-        buzzerOffAt = 0;
-    }
     const PinConfig& p = getPinConfig();
     const int buttons[4] = {p.btn1, p.btn2, p.btn3, p.btn4};
     for (int i = 0; i < 4; ++i) {
@@ -224,36 +225,19 @@ void updateVendingMachine() {
         stopDispensers();
         dispensingSlot = 0;
     }
-    if (collectionEnabled) {
-        bool sensorA = digitalRead(p.sensorA) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
-        bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
-        bool sensorC = digitalRead(p.sensorC) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
-        bool sensorD = digitalRead(p.sensorD) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
-        int detectedCredits = bottleCreditsForSensors(sensorA, sensorB, sensorC, sensorD);
-        bool sensorsClear = !sensorA && !sensorB && !sensorC && !sensorD;
-        if (!bottleStorageFull && !bottleInFlight && !bottleReady && sensorsClear && bottleCooldownComplete(now)) collectionArmed = true;
-        if (!bottleStorageFull && !bottleInFlight && collectionArmed && sensorA && sensorB) {
-            if (!validationStarted) validationStarted = now;
-            else if (now - validationStarted >= BOTTLE_VALIDATION_TIME_MS && detectedCredits) {
-                bottleInFlight = true; bottleCredits = detectedCredits;
-                collectionArmed = false;
-                validationStarted = 0; doorOpenPending = true; doorOpenStartedAt = now;
+    if (doorCycleActive) {
+        uint32_t elapsed = now - doorCycleStartedAt;
+        if (elapsed >= DOOR_CYCLE_MS) {
+            door(false);
+            doorCycleActive = false;
+            displayMessage(bottleStorageFull ? "The Machine is Full" : "Closed machine is", bottleStorageFull ? "" : "Ready");
+            doorCountdownShown = 0;
+        } else {
+            int remaining = (DOOR_CYCLE_MS - elapsed + 999) / 1000;
+            if (remaining != doorCountdownShown) {
+                doorCountdownShown = remaining;
+                displayMessage("Door closing in:", String(remaining) + " seconds");
             }
-        } else if (!bottleInFlight) validationStarted = 0;
-        if (bottleInFlight) {
-            if (detectedCredits > bottleCredits) bottleCredits = detectedCredits;
-            if (doorOpenPending && intervalElapsed(now, doorOpenStartedAt, DOOR_OPEN_DELAY_MS)) {
-                door(true); doorOpenPending = false;
-            }
-        }
-        if (bottleInFlight && doorOpen) {
-            if (sensorsClear) {
-                if (!doorClosePending) { doorClosePending = true; doorCloseStartedAt = now; }
-                else if (intervalElapsed(now, doorCloseStartedAt, DOOR_CLOSE_DELAY_MS)) {
-                    door(false); doorClosePending = false; bottleReady = true; bottleInFlight = false;
-                    hasCompletedBottle = true; lastBottleCompletedAt = now;
-                }
-            } else doorClosePending = false;
         }
     }
     xSemaphoreGive(hardwareMutex);

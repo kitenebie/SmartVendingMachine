@@ -26,7 +26,7 @@ body{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}.topb
 <body><header class="topbar"><div class="portal-brand"><span class="portal-logo" aria-hidden="true">♻</span><span><strong>Reverse-Vending Machine</strong><small>User Portal</small></span></div></header>
 <main class="portal">
   <section class="panel welcome-panel"><div class="credit-strip"><span class="coin-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><ellipse cx="14" cy="8" rx="9" ry="4"/><path d="M5 8v5c0 2.2 4 4 9 4 1.4 0 2.8-.2 4-.5M5 13v5c0 2.2 4 4 9 4 1.7 0 3.3-.2 4.7-.7M12 22v2c0 2.2 4 4 9 4s9-1.8 9-4v-5M12 22v-5M21 13c5 0 9 1.8 9 4s-4 4-9 4-9-1.8-9-4 4-4 9-4Z"/></svg></span><span class="credit-label">Your Credits</span><strong class="credit" id="credits">—</strong></div><button id="insert" class="insert-button" type="button"><span class="insert-icon" aria-hidden="true"><svg viewBox="0 0 24 32"><path d="M9 2h6v5l2 2v2H7V9l2-2V2Z"/><path d="M7 11h10l2 3v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V14l2-3Z"/></svg></span>Insert Bottle</button><p class="insert-hint">Tap when you insert a bottle into the machine.</p><p id="machineStatus" role="status" aria-live="polite"></p><p id="message" role="status" aria-live="polite"></p></section>
-  <section class="panel instructions"><h2>How to use</h2><ol><li>Tap <strong>Insert Bottle</strong> to start.</li><li>Drop your bottle into the machine.</li><li>Wait for the door to close and your credits to update. Wait 30 seconds before inserting another bottle.</li><li>Tap <strong>Finish session</strong> when the sensors are clear and the door is closed.</li></ol></section>
+  <section class="panel instructions"><h2>How to use</h2><ol><li>Tap <strong>Insert Bottle</strong>; the door closes and the session starts.</li><li>Insert one bottle while the door is closed.</li><li>Tap <strong>Finish session</strong> while the size sensors detect the bottle.</li><li>Wait for the credits and the 10-second door countdown to finish.</li></ol></section>
   <section class="panel redeem-panel"><h2 class="panel-title"><span class="panel-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10h18v11H3zM2 6h20v4H2zM12 6v15M12 6H7.5a2.5 2.5 0 1 1 2.5-2.5C10 5 12 6 12 6Zm0 0h4.5A2.5 2.5 0 1 0 14 3.5C14 5 12 6 12 6Z"/></svg></span>Redeem Product</h2><ul id="products" class="product-list"></ul></section>
   <section id="passwordPanel" class="panel security-panel" hidden><h2>Change Password</h2><form id="passwordForm" class="form-stack">
     <div class="field"><label for="currentPassword">Current password</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
@@ -38,20 +38,20 @@ body{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}.topb
   <span class="session-mark" aria-hidden="true"><svg viewBox="0 0 24 32"><path d="M9 2h6v5l2 2v2H7V9l2-2V2Z"/><path d="M7 11h10l2 3v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V14l2-3Z"/></svg></span>
   <p class="session-kicker">Bottle session active</p><h2 id="insert-title">Insert a bottle</h2>
   <div class="countdown-ring" id="timerRing" role="timer"><span class="countdown-center"><span id="seconds">60</span><small>seconds left</small></span></div>
-  <p id="session-instructions">Insert your bottle now. Wait for sensors to clear, the door to close, and credits to update before finishing. Wait 30 seconds before inserting another bottle.</p><p id="sessionNotice" role="status" aria-live="polite"></p><button id="done" type="button" disabled>Finish session</button>
+  <p id="session-instructions">The door is closed. Insert one bottle, then tap Finish session while its size sensors are lit.</p><p id="sessionNotice" role="status" aria-live="polite"></p><button id="done" type="button">Finish session</button>
 </div></div>
 <script src="/js/auth.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-let sessionTimer, purchasePending = false;
+let sessionTimer, purchasePending = false, finishRequested = false;
 function message(text) { $('message').textContent = text; }
 function showVendingStatus(status) {
-  const cooldown = status.next_bottle_seconds || 0;
   const blocked = status.blocked_drop_sensors || [];
-  $('machineStatus').textContent = cooldown
-    ? `Wait ${cooldown}s before inserting another bottle.`
+  $('machineStatus').textContent = status.machine_full ? 'The Machine is Full.'
     : blocked.length ? 'Vending paused: check drop sensor(s) ' + blocked.join(', ') + '.'
-    : status.can_finish === false ? 'Wait for the sensors to clear and the door to close.'
+    : status.finishing ? status.door_seconds_remaining > 0
+      ? `Credit saved. Door closes in ${status.door_seconds_remaining}s.`
+      : 'Saving credit. The door will open after it is saved.'
     : 'Vending ready.';
 }
 async function refresh() {
@@ -116,6 +116,7 @@ $('cancelPassword').onclick = () => { $('passwordPanel').hidden = true; };
 $('insert').onclick = async () => {
   try {
     await api('/api/session/start', {method:'POST'});
+    finishRequested = false;
     $('sessionNotice').textContent = '';
     $('modal').style.display = 'grid';
     $('done').focus();
@@ -126,9 +127,20 @@ $('insert').onclick = async () => {
         $('seconds').textContent = status.seconds_remaining;
         $('credits').textContent = status.credits;
         showVendingStatus(status);
-        $('done').disabled = !status.can_finish;
-        $('sessionNotice').textContent = status.can_finish ? '' : 'Wait for sensors to clear, the door to close, and credits to save.';
-        if (!status.locked && status.can_finish) $('done').click();
+        if (finishRequested) {
+          $('done').disabled = true;
+          $('sessionNotice').textContent = status.finishing
+            ? status.door_seconds_remaining > 0
+              ? `Credit saved. Door closes in ${status.door_seconds_remaining}s.`
+              : 'Saving credit. The door will open after it is saved.'
+            : 'Session finished.';
+        }
+        if (!status.locked) {
+          finishRequested = false;
+          clearInterval(sessionTimer);
+          $('modal').style.display = 'none';
+          await refresh();
+        }
       } catch (error) { message(error.message); }
     }, 1000);
   } catch (error) { message(error.message); }
@@ -136,12 +148,17 @@ $('insert').onclick = async () => {
 $('done').onclick = async () => {
   $('done').disabled = true;
   try {
-    await api('/api/session/end', {method:'POST'});
+    const result = await api('/api/session/end', {method:'POST'});
+    if (result.processing) {
+      finishRequested = true;
+      $('sessionNotice').textContent = 'Saving credit. The door will open after it is saved.';
+      return;
+    }
     clearInterval(sessionTimer);
     $('modal').style.display = 'none';
     $('insert').focus();
     await refresh();
-  } catch (error) { $('sessionNotice').textContent = error.message; }
+  } catch (error) { $('done').disabled = false; $('sessionNotice').textContent = error.message; }
 };
 $('passwordForm').onsubmit = async event => {
   event.preventDefault();

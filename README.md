@@ -1,6 +1,6 @@
 # ESP32 reverse vending machine
 
-Four product slots, two bottle sensors, four selection buttons, four drop sensors, a tube door servo, and a 20×4 I2C LCD. The ESP32 runs its own WiFi access point and serves a small user portal and admin page.
+Four product slots, four bottle sensors, four selection buttons, four drop sensors, a tube door servo, and a 20×4 I2C LCD. The ESP32 runs its own WiFi access point and serves a small user portal and admin page.
 
 ## Before wiring
 
@@ -8,14 +8,14 @@ The old [Plan.jpg](Plan.jpg) is a **concept sketch, not a wiring schematic**. It
 
 | Part | GPIO |
 | --- | --- |
-| Bottle sensors (upper and lower) | 34, 35 |
+| Bottle sensor A, B, C, D | 34, 35, 2, 15 |
 | Product buttons 1–4 | 13, 14, 27, 26 |
 | Drop sensors 1–4 | 16, 17, 32, 33 |
 | Dispenser servos 1–4 | 18, 19, 21, 25 |
 | Tube door servo | 4 |
 | LCD SDA, SCL | 23, 22 |
 
-Buttons use internal pullups and connect to ground when pressed. The drop sensors are configured active LOW. Bottle sensors A–D are configured active HIGH; check each sensor's output signal and adjust the levels in [config.h](config.h) if needed. GPIO 34, 35, 36 and 39 have **no internal pullups**; open-collector sensors on those pins require external 3.3 V pullups. Set the door angles and continuous-rotation dispenser stop/push duty values in `config.h` for your mechanism before stocking the machine.
+Buttons use internal pullups and connect to ground when pressed. The drop sensors are configured active LOW. Bottle sensors A–D are configured active HIGH; check each sensor's output signal and adjust the levels in [config.h](config.h) if needed. GPIO 34 and 35 are input-only with no internal pullups; GPIO 2 and 15 are boot-strapping pins, so check sensor output levels during startup. Set the door angles and continuous-rotation dispenser stop/push duty values in `config.h` for your mechanism before stocking the machine.
 
 ## Build and first start
 
@@ -28,10 +28,8 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 
 ## Dispensing behavior
 
-- After Sensors A and B detect a bottle for 200 ms, the tube door waits 5 seconds before opening. Once all four sensors clear, it waits another 5 seconds before closing. Credits are saved only after the sensors clear and the door closes; wait 30 seconds before inserting another bottle. The portal disables Finish session until sensors clear, the door closes, and credits are saved.
-- Bottle credit is sensor-based: A+B = 1, A+B+C = 3, and A+B+C+D = 5; partial sensor states do not award credit until the bottle clears the sensors and the door closes. Sensors C and D default to GPIO 2 and 15; both are boot strapping pins, so sensor output levels can affect boot or firmware upload.
-- Bottle storage count persists across restarts and stops collection at 100 bottles. Admins can reset the count after physically emptying the storage.
-- An active buzzer on GPIO 5 sounds for 500 ms when bottle storage reaches capacity. Drive it through a transistor; GPIO 5 is a boot-strap pin, so the buzzer circuit must not pull it during reset.
+- Tapping **Insert Bottle** starts a session and closes the tube door. After inserting one bottle, tap **Finish session** while the size sensors are lit. A+B = 1 credit, A+B+C = 3, and A+B+C+D = 5; incomplete or unsupported patterns do not earn credit. After the credit is saved, the door opens for a 10-second LCD countdown, then closes. The LCD shows `Closed machine is` / `Ready` after closing. There is no cooldown.
+- Bottle storage count persists across restarts and stops new sessions at 100 bottles. At capacity, the LCD displays `The Machine is Full`; admins can reset the count after physically emptying the storage.
 - A product button works only while that account's 60-second bottle session is active. The web portal can also request one item.
 - The firmware checks stock, credits, and that all drop sensors are clear before starting the selected servo. The first active drop sensor stops all dispensers and confirms delivery. After confirmation, the firmware saves the charge and new stock. A five-second timeout stops the servo without a charge.
 - Each account may receive at most four products per Philippine calendar day. Credits expire to zero after two days without account activity. These rules require a valid clock. The admin page sets the clock from the admin device; connecting the machine to internet Wi-Fi keeps it synchronized automatically with NTP.
