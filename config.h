@@ -12,7 +12,7 @@
 // Do not use SD0, SD1, SD2, SD3, CMD, or CLK: they are connected to the ESP32 flash.
 
 // ---- WiFi Access Point (Hotspot) Settings ------------------
-#define AP_SSID         "ESP32-Inventory"
+#define AP_SSID         "Bottle Vending Machine"
 #define AP_CHANNEL      1
 #define AP_MAX_CONN     4
 
