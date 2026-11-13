@@ -26,6 +26,9 @@
 #define PIN_SENSOR_C    2      // Bottle size sensor C — GPIO 2 (boot strap)
 #define PIN_SENSOR_D    15     // Bottle size sensor D — GPIO 15 (boot strap)
 #define BOTTLE_VALIDATION_TIME_MS  200   // Sensors A and B must be active for this duration
+#define BOTTLE_COOLDOWN_MS         30000
+#define DOOR_OPEN_DELAY_MS         5000
+#define DOOR_CLOSE_DELAY_MS        5000
 #define BOTTLE_STORAGE_CAPACITY    100
 #define BUZZER_PIN                 5  // Active buzzer control; drive through a transistor
 #define BUZZER_ALERT_MS            500

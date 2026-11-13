@@ -9,6 +9,7 @@ void setBottleStorageFull(bool full);
 void alertStorageFull();
 bool consumeValidatedBottle(int& credits);
 bool bottleDetectionPending();
+uint32_t bottleCooldownSecondsRemaining();
 bool startDispense(uint8_t slot);
 DispenseResult takeDispenseResult();
 uint8_t takeButtonPress();

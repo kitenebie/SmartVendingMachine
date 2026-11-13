@@ -114,7 +114,6 @@ async function load() {
     nameCell.append(art, name);
     cell(row, product.credit_cost); cell(row, product.stock); cell(row, '');
     action(row, 'Edit', () => editProduct(product));
-    action(row, 'Delete', () => removeProduct(product.id));
     return row;
   }));
   $('log').textContent = JSON.stringify(history, null, 2);
@@ -191,10 +190,6 @@ async function editProduct(product) {
   await run(() => api('/api/products', {method:'PUT', body:JSON.stringify({
     id:product.id, name:name.trim(), credit_cost:creditCost, stock
   })}));
-}
-async function removeProduct(id) {
-  if (!confirm('Delete this product? The other products keep their servo slots.')) return;
-  await run(() => api('/api/products?id=' + encodeURIComponent(id), {method:'DELETE'}));
 }
 $('wifiForm').onsubmit = async event => {
   event.preventDefault();

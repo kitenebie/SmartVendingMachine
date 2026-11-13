@@ -28,8 +28,8 @@ Buttons use internal pullups and connect to ground when pressed. The drop sensor
 
 ## Dispensing behavior
 
-- The tube door opens after Sensors A and B detect a bottle for 200 ms, then closes once all four sensors are clear; it also closes when the session ends or times out.
-- Bottle credit is sensor-based: A+B = 1, A+B+C = 3, and A+B+C+D = 5. Sensors C and D default to GPIO 2 and 15; both are boot strapping pins, so sensor output levels can affect boot or firmware upload.
+- After Sensors A and B detect a bottle for 200 ms, the tube door waits 5 seconds before opening. Once all four sensors clear, it waits another 5 seconds before closing. Credits are saved only after the sensors clear and the door closes; wait 30 seconds before inserting another bottle. The portal disables Finish session until sensors clear, the door closes, and credits are saved.
+- Bottle credit is sensor-based: A+B = 1, A+B+C = 3, and A+B+C+D = 5; partial sensor states do not award credit until the bottle clears the sensors and the door closes. Sensors C and D default to GPIO 2 and 15; both are boot strapping pins, so sensor output levels can affect boot or firmware upload.
 - Bottle storage count persists across restarts and stops collection at 100 bottles. Admins can reset the count after physically emptying the storage.
 - An active buzzer on GPIO 5 sounds for 500 ms when bottle storage reaches capacity. Drive it through a transistor; GPIO 5 is a boot-strap pin, so the buzzer circuit must not pull it during reset.
 - A product button works only while that account's 60-second bottle session is active. The web portal can also request one item.

@@ -254,7 +254,7 @@ static void handleStart(AsyncWebServerRequest* request) {
 static void handleEnd(AsyncWebServerRequest* request) {
     ApiLock lock; User* user; if (!requireUser(request, user)) return;
     if (active.locked && active.userId != user->id) { sendError(request, 403, "not_session_owner"); return; }
-    if (bottleDetectionPending()) { sendError(request, 409, "bottle_detection_pending"); return; }
+    if (bottleDetectionPending() || bottleCreditsWaiting) { sendError(request, 409, "bottle_processing_pending"); return; }
     active = {}; setBottleCollectionEnabled(false);
     JsonDocument result; result["success"] = true; sendJson(request, 200, result);
 }
@@ -264,6 +264,8 @@ static void handleStatus(AsyncWebServerRequest* request) {
     JsonDocument result; result["locked"] = active.locked && remaining > 0;
     result["user_id"] = active.userId;
     result["seconds_remaining"] = remaining > 0 ? (remaining + 999) / 1000 : 0;
+    result["next_bottle_seconds"] = bottleCooldownSecondsRemaining();
+    result["can_finish"] = !bottleDetectionPending() && !bottleCreditsWaiting;
     result["credits"] = user->credits;
     uint8_t blockedSensors = blockedDropSensorMask();
     JsonArray blocked = result["blocked_drop_sensors"].to<JsonArray>();
@@ -397,7 +399,7 @@ void updateReverseVending() {
     ApiLock lock;
     uint32_t now = millis();
     if (active.locked && (int32_t)(active.expiresAt - now) <= 0) {
-        if (bottleDetectionPending()) active.expiresAt = now + 1000;
+        if (bottleDetectionPending() || bottleCreditsWaiting) active.expiresAt = now + 1000;
         else { active = {}; setBottleCollectionEnabled(false); }
     }
     int creditsEarned;
