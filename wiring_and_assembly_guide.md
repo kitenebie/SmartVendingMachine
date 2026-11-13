@@ -25,7 +25,7 @@ This guide provides an exhaustive, step-by-step mechanical and electrical manual
 |:---|:---|:---|:---|
 | **1** | Main Controller | 1 | **ESP32 38-Pin Development Board** (NodeMCU / DevKit V1) |
 | **2** | External Power Supply | 1 | **5V 6A DC Switching Power Supply** |
-| **3** | Bottle Proximity Sensors | 2 | **NPN Proximity Sensors** (or IR Obstacle Sensors) |
+| **3** | Bottle Proximity Sensors | 4 | **E18-D80NK NPN open-collector sensors** |
 | **4** | Product Selection Buttons | 4 | **Momentary Push Buttons** (Normal Open / NO) |
 | **5** | Dispensing Motors | 4 | **Continuous Rotation Servos (MG996R / DS3218)** with spiral spring coils |
 | **6** | Drop Confirmation Sensors | 4 | **IR Beam / Obstacle Sensors** (Active LOW output) |
@@ -40,23 +40,29 @@ This guide provides an exhaustive, step-by-step mechanical and electrical manual
 
 | Component | Wire Function | Wire Color | ESP32 GPIO | Logic Level | Connection Target |
 |:---|:---|:---|:---|:---|:---|
-| **Bottle Sensor A (Upper)** | VCC / Power | **RED** | — | 5V | External Power +5V |
+| **Bottle Sensor A (Upper)** | VCC / Power | per sensor label | — | 5V | External Power +5V |
 | | GND | **BLACK** | — | 0V | Common Ground (GND) |
-| | Signal (OUT) | **YELLOW/BLUE** | **GPIO 34** | 3.3V Max | ESP32 Pin 34 (via divider if 5V) |
-| **Bottle Sensor B (Lower)** | VCC / Power | **RED** | — | 5V | External Power +5V |
+| | Signal (OUT) | signal wire | **GPIO 16** | Active LOW | ESP32 internal pull-up; output must stay ≤3.3V |
+| **Bottle Sensor B (Lower)** | VCC / Power | per sensor label | — | 5V | External Power +5V |
 | | GND | **BLACK** | — | 0V | Common Ground (GND) |
-| | Signal (OUT) | **YELLOW/BLUE** | **GPIO 35** | 3.3V Max | ESP32 Pin 35 (via divider if 5V) |
-| **Button 1 (Product 1)** | Terminal A | **WHITE/BLUE** | **GPIO 13** | 3.3V Pullup | ESP32 Pin 13 |
+| | Signal (OUT) | signal wire | **GPIO 17** | Active LOW | ESP32 internal pull-up; output must stay ≤3.3V |
+| **Bottle Size Sensor C** | VCC / Power | per sensor label | — | 5V | External Power +5V |
+| | GND | per sensor label | — | 0V | Common Ground (GND) |
+| | Signal (OUT) | signal wire | **GPIO 27** | Active LOW | ESP32 internal pull-up; output must stay ≤3.3V |
+| **Bottle Size Sensor D** | VCC / Power | per sensor label | — | 5V | External Power +5V |
+| | GND | per sensor label | — | 0V | Common Ground (GND) |
+| | Signal (OUT) | signal wire | **GPIO 26** | Active LOW | ESP32 internal pull-up; output must stay ≤3.3V |
+| **Button 1 (Product 1)** | Terminal A | — | **GPIO 2** | 3.3V Pullup | Leave unpressed during reset (boot strap) |
 | | Terminal B | **BLACK** | — | 0V | ESP32 GND |
-| **Button 2 (Product 2)** | Terminal A | **WHITE/BLUE** | **GPIO 14** | 3.3V Pullup | ESP32 Pin 14 |
+| **Button 2 (Product 2)** | Terminal A | — | **GPIO 5** | 3.3V Pullup | Leave unpressed during reset (boot strap) |
 | | Terminal B | **BLACK** | — | 0V | ESP32 GND |
-| **Button 3 (Product 3)** | Terminal A | **WHITE/BLUE** | **GPIO 27** | 3.3V Pullup | ESP32 Pin 27 |
+| **Button 3 (Product 3)** | Terminal A | — | **GPIO 12** | 3.3V Pullup | Leave unpressed during reset (boot strap) |
 | | Terminal B | **BLACK** | — | 0V | ESP32 GND |
-| **Button 4 (Product 4)** | Terminal A | **WHITE/BLUE** | **GPIO 26** | 3.3V Pullup | ESP32 Pin 26 |
+| **Button 4 (Product 4)** | Terminal A | — | **GPIO 15** | 3.3V Pullup | Leave unpressed during reset (boot strap) |
 | | Terminal B | **BLACK** | — | 0V | ESP32 GND |
-| **IR Drop Sensor 1** | Signal (OUT) | **YELLOW** | **GPIO 16 (P16)** | 3.3V Active LOW| ESP32 Pin 16 |
+| **IR Drop Sensor 1** | Signal (OUT) | **YELLOW** | **GPIO 13 (P13)** | 3.3V Active LOW| ESP32 Pin 13 |
 | | VCC & GND | **RED / BLACK**| — | 3.3V / 5V | Power Bus & Common GND |
-| **IR Drop Sensor 2** | Signal (OUT) | **YELLOW** | **GPIO 17 (P17)** | 3.3V Active LOW| ESP32 Pin 17 |
+| **IR Drop Sensor 2** | Signal (OUT) | **YELLOW** | **GPIO 14 (P14)** | 3.3V Active LOW| ESP32 Pin 14 |
 | | VCC & GND | **RED / BLACK**| — | 3.3V / 5V | Power Bus & Common GND |
 | **IR Drop Sensor 3** | Signal (OUT) | **YELLOW** | **GPIO 32** | 3.3V Active LOW| ESP32 Pin 32 |
 | | VCC & GND | **RED / BLACK**| — | 3.3V / 5V | Power Bus & Common GND |
@@ -166,7 +172,7 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 
 ### Step 2: Bottle Chute (Dual Validation and Door)
 1. I-mount ang Sensor A (Upper) at Sensor B (Lower) sa validation area ng tube.
-2. Ikonekta ang Sensor A ➔ **GPIO 34** at Sensor B ➔ **GPIO 35**. Maglagay ng tig-10 kΩ pull-down resistor mula GPIO 34 at GPIO 35 papuntang GND dahil walang internal pull resistor ang mga pin na ito.
+2. Ikonekta ang bottle sensors A, B, C, D sa **GPIO 16, 17, 27, 26**, ayon sa pagkakasunod. Ang E18-D80NK ay NPN open-collector: detection = LOW; firmware enables the ESP32 internal pull-ups, kaya walang external pull resistor sa mga bottle sensor signal. Huwag direktang maglagay ng 5 V sa GPIO.
 3. Ikonekta ang signal ng 180° tube-door servo ➔ **GPIO 4**. Ang VCC nito ay dapat sa hiwalay at sapat na 5 V supply; pag-isahin ang GND ng supply at ESP32.
 
 ### Step 3: Product Compartments & Dispenser Servos
@@ -178,13 +184,13 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 ### Step 4: IR Drop Detection Sensors
 1. I-mount ang 4 na IR drop sensors sa ilalim ng dispensing chute.
 2. Ikonekta ang:
-   - IR 1 ➔ **GPIO 16 (P16)**, IR 2 ➔ **GPIO 17 (P17)**, IR 3 ➔ **GPIO 32 (P32)**, IR 4 ➔ **GPIO 33 (P33)**.
+   - IR 1 ➔ **GPIO 13 (P13)**, IR 2 ➔ **GPIO 14 (P14)**, IR 3 ➔ **GPIO 32 (P32)**, IR 4 ➔ **GPIO 33 (P33)**.
 
 > **Stop behavior:** Habang nagdi-dispense, kapag kahit alin sa IR 1–IR 4 ay naka-detect ng object, agad ihihinto ng firmware ang **lahat ng apat na servos**. Dapat malinaw ang daanan at walang naka-detect na object sa lahat ng IR sensors bago mag-dispense.
 
 ### Step 5: Front Panel (4 Push Buttons & 20x4 LCD)
 1. I-mount ang 4 na push buttons:
-   - Button 1 ➔ **GPIO 13**, Button 2 ➔ **GPIO 14**, Button 3 ➔ **GPIO 27**, Button 4 ➔ **GPIO 26** (kabilang terminals sa GND).
+   - Button 1 ➔ **GPIO 2**, Button 2 ➔ **GPIO 5**, Button 3 ➔ **GPIO 12**, Button 4 ➔ **GPIO 15** (kabilang terminals sa GND). Huwag pindutin habang nagre-reset o nagbo-boot ang ESP32 dahil boot-strapping pins ang mga ito.
 2. I-mount ang 20x4 LCD:
    - **GND** ➔ Common GND
    - **VCC** ➔ 5V Power

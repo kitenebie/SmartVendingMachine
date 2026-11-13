@@ -110,8 +110,8 @@ bool initVendingMachine() {
     hardwareMutex = xSemaphoreCreateMutex();
     if (!hardwareMutex) return false;
     const PinConfig& p = getPinConfig();
-    pinMode(p.sensorA, INPUT); pinMode(p.sensorB, INPUT);
-    pinMode(p.sensorC, INPUT_PULLDOWN); pinMode(p.sensorD, INPUT_PULLDOWN);
+    pinMode(p.sensorA, INPUT_PULLUP); pinMode(p.sensorB, INPUT_PULLUP);
+    pinMode(p.sensorC, INPUT_PULLUP); pinMode(p.sensorD, INPUT_PULLUP);
     const int buttons[4] = {p.btn1, p.btn2, p.btn3, p.btn4};
     const int sensors[4] = {p.ir1, p.ir2, p.ir3, p.ir4};
     for (int i = 0; i < 4; ++i) {

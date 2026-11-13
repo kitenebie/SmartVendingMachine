@@ -17,12 +17,12 @@ static PinConfig s_pins = {
     PIN_SENSOR_B, // sensorB
     PIN_SENSOR_C, // sensorC
     PIN_SENSOR_D, // sensorD
-    13, // btn1
-    14, // btn2
-    27, // btn3
-    26, // btn4
-    16, // ir1 (P16)
-    17, // ir2 (P17)
+    PIN_BTN_1, // btn1
+    PIN_BTN_2, // btn2
+    PIN_BTN_3, // btn3
+    PIN_BTN_4, // btn4
+    PIN_IR_1, // ir1
+    PIN_IR_2, // ir2
     32, // ir3
     33, // ir4
     18, // servo1
@@ -35,7 +35,7 @@ static PinConfig s_pins = {
 };
 
 bool isValidGpio(int pin, bool allowInputOnly) {
-    const int usable[] = {2, 4, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33, 34, 35, 36, 39};
+    const int usable[] = {2, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33, 34, 35, 36, 39};
     bool found = false;
     for (int value : usable) if (value == pin) found = true;
     return found && (allowInputOnly || (pin != 34 && pin != 35 && pin != 36 && pin != 39));
@@ -98,19 +98,42 @@ bool initPinConfig() {
     s_pins.lcdSda  = doc["lcdSda"]  | (doc["dispDio"] | s_pins.lcdSda);
     s_pins.lcdScl  = doc["lcdScl"]  | (doc["dispClk"] | s_pins.lcdScl);
 
-    // Migrate the previous IR 1/IR 2 defaults away from VP/VN to P16/P17.
-    bool migratedIrPins = false;
-    if (s_pins.ir1 == 36) { s_pins.ir1 = 16; migratedIrPins = true; }
-    if (s_pins.ir2 == 39) { s_pins.ir2 = 17; migratedIrPins = true; }
+    bool migratedPreviousDefaultPins = s_pins.sensorA == 34 && s_pins.sensorB == 35 &&
+        ((s_pins.sensorC == 2 && s_pins.sensorD == 15) || (s_pins.sensorC == 36 && s_pins.sensorD == 39)) &&
+        ((s_pins.btn1 == 13 && s_pins.btn2 == 14 && s_pins.btn3 == 27 && s_pins.btn4 == 26) ||
+         (s_pins.btn1 == PIN_BTN_1 && s_pins.btn2 == PIN_BTN_2 &&
+          s_pins.btn3 == PIN_BTN_3 && s_pins.btn4 == PIN_BTN_4)) &&
+        ((s_pins.ir1 == 16 && s_pins.ir2 == 17) || (s_pins.ir1 == 36 && s_pins.ir2 == 39)) &&
+        s_pins.ir3 == 32 && s_pins.ir4 == 33;
+    bool migratedRecentDefaultPins = s_pins.sensorA == 13 && s_pins.sensorB == 14 &&
+        s_pins.sensorC == 27 && s_pins.sensorD == 26 &&
+        s_pins.btn1 == PIN_BTN_1 && s_pins.btn2 == PIN_BTN_2 &&
+        s_pins.btn3 == PIN_BTN_3 && s_pins.btn4 == PIN_BTN_4 &&
+        s_pins.ir1 == 16 && s_pins.ir2 == 17 && s_pins.ir3 == 32 && s_pins.ir4 == 33;
+    if (migratedPreviousDefaultPins || migratedRecentDefaultPins) {
+        s_pins.sensorA = PIN_SENSOR_A; s_pins.sensorB = PIN_SENSOR_B;
+        s_pins.sensorC = PIN_SENSOR_C; s_pins.sensorD = PIN_SENSOR_D;
+        s_pins.btn1 = PIN_BTN_1; s_pins.btn2 = PIN_BTN_2;
+        s_pins.btn3 = PIN_BTN_3; s_pins.btn4 = PIN_BTN_4;
+        s_pins.ir1 = PIN_IR_1; s_pins.ir2 = PIN_IR_2;
+        s_pins.ir3 = PIN_IR_3; s_pins.ir4 = PIN_IR_4;
+    }
 
-    bool migratedBottlePins = s_pins.sensorC == 36 && s_pins.sensorD == 39;
-    if (migratedBottlePins) { s_pins.sensorC = PIN_SENSOR_C; s_pins.sensorD = PIN_SENSOR_D; }
+    // Migrate older VP/VN IR assignments when they are custom, not a full default set.
+    bool migratedIrPins = false;
+    if (!migratedPreviousDefaultPins && !migratedRecentDefaultPins) {
+        if (s_pins.ir1 == 36) { s_pins.ir1 = PIN_IR_1; migratedIrPins = true; }
+        if (s_pins.ir2 == 39) { s_pins.ir2 = PIN_IR_2; migratedIrPins = true; }
+    }
+
+    bool migratedBottlePins = !migratedPreviousDefaultPins && s_pins.sensorC == 36 && s_pins.sensorD == 39;
+    if (migratedBottlePins) { s_pins.sensorC = 2; s_pins.sensorD = 15; }
 
     if (!validConfig(s_pins)) {
         Serial.println("[PinConfig] Invalid or duplicate GPIO assignment.");
         return false;
     }
-    if (migratedIrPins || migratedBottlePins) {
+    if (migratedIrPins || migratedBottlePins || migratedPreviousDefaultPins || migratedRecentDefaultPins) {
         if (!savePinConfig(s_pins)) return false;
         Serial.println("[PinConfig] Migrated previous sensor pin assignments.");
     }
@@ -159,7 +182,7 @@ bool savePinConfig(const PinConfig& cfg) {
 
 void resetPinConfigToDefaults() {
     PinConfig defaults = {PIN_SENSOR_A, PIN_SENSOR_B, PIN_SENSOR_C, PIN_SENSOR_D,
-                          13, 14, 27, 26, 16, 17, 32, 33,
+                          PIN_BTN_1, PIN_BTN_2, PIN_BTN_3, PIN_BTN_4, PIN_IR_1, PIN_IR_2, PIN_IR_3, PIN_IR_4,
                           18, 19, 21, 25, PIN_DOOR_SERVO, 23, 22};
     savePinConfig(defaults);
 }

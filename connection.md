@@ -20,16 +20,16 @@ At 100 bottles, the 20×4 LCD displays `The Machine is Full`. No buzzer is used.
 
 | Component | `+` / VCC connection | `−` / GND connection | Required voltage | Signal connection | Notes |
 |:---|:---|:---|:---|:---|:---|
-| **Bottle Proximity Sensor A** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 34 / P34** | 3.3V max; add a 10 kΩ pull-down from signal to GND. |
-| **Bottle Proximity Sensor B** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 35 / P35** | Same voltage protection and 10 kΩ pull-down as Sensor A. |
-| **Bottle Size Sensor C** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 2** | 3.3V-safe output required; boot strapping pin. |
-| **Bottle Size Sensor D** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 15** | 3.3V-safe output required; boot strapping pin. |
-| **Product 1 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 13 / P13** | Do **not** connect this button to 5V. |
-| **Product 2 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 14 / P14** | Do **not** connect this button to 5V. |
-| **Product 3 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 27 / P27** | Do **not** connect this button to 5V. |
-| **Product 4 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 26 / P26** | Do **not** connect this button to 5V. |
-| **IR Drop Sensor 1** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 16 / P16** | Any active IR sensor stops all servos. |
-| **IR Drop Sensor 2** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 17 / P17** | If the module needs 5V, level-shift/divide its `OUT` to 3.3V. |
+| **Bottle Proximity Sensor A** | Sensor supply per label | Common GND | `5V` sensor supply; output ≤3.3V | `OUT` → **GPIO 16 / P16** | E18-D80NK NPN output is active LOW; ESP32 internal pull-up. |
+| **Bottle Proximity Sensor B** | Sensor supply per label | Common GND | `5V` sensor supply; output ≤3.3V | `OUT` → **GPIO 17 / P17** | Same active-LOW wiring as Sensor A. |
+| **Bottle Size Sensor C** | Sensor supply per label | Common GND | `5V` sensor supply; output ≤3.3V | `OUT` → **GPIO 27 / P27** | Same active-LOW wiring as Sensor A. |
+| **Bottle Size Sensor D** | Sensor supply per label | Common GND | `5V` sensor supply; output ≤3.3V | `OUT` → **GPIO 26 / P26** | Same active-LOW wiring as Sensor A. |
+| **Product 1 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 2** | Boot strap; leave unpressed during reset. |
+| **Product 2 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 5** | Boot strap; leave unpressed during reset. |
+| **Product 3 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 12** | Boot strap; leave unpressed during reset. |
+| **Product 4 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 15** | Boot strap; leave unpressed during reset. |
+| **IR Drop Sensor 1** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 13 / P13** | Any active IR sensor stops all servos. |
+| **IR Drop Sensor 2** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 14 / P14** | If the module needs 5V, level-shift/divide its `OUT` to 3.3V. |
 | **IR Drop Sensor 3** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 32 / P32** | Any active IR sensor stops all servos. |
 | **IR Drop Sensor 4** | ESP32 `3V3` | Common GND | `3.3V` preferred | `OUT` → **GPIO 33 / P33** | Any active IR sensor stops all servos. |
 | **Servo 1 (Spring Motor 1)** | External supply `+5V` | External supply `−` / Common GND | `5V` | Signal (orange/white) → **GPIO 18 / P18** | Never power a servo from ESP32 3V3 or VIN. |
@@ -92,18 +92,18 @@ Ang 20x4 Character LCD na may I2C Backpack ay gumagamit lamang ng **4 na wires**
      |                                                                        |
      |   5V USB Power ---> [Micro-USB / VIN]                                  |
      |                                                                        |
-     |   [GPIO 34] <--- Bottle Sensor A OUT (3.3V safe)                       |
-     |   [GPIO 35] <--- Bottle Sensor B OUT (3.3V safe)                       |
-     |   [GPIO  2] <--- Bottle Sensor C OUT (3.3V safe)                       |
-     |   [GPIO 15] <--- Bottle Sensor D OUT (3.3V safe)                       |
-     |   [GPIO 16] <--- IR Drop 1 OUT (3.3V safe)                             |
-     |   [GPIO 17] <--- IR Drop 2 OUT (3.3V safe)                             |
+|   [GPIO 16] <--- Bottle Sensor A OUT (NPN, active LOW)                  |
+|   [GPIO 17] <--- Bottle Sensor B OUT (NPN, active LOW)                  |
+|   [GPIO 27] <--- Bottle Sensor C OUT (NPN, active LOW)                  |
+|   [GPIO 26] <--- Bottle Sensor D OUT (NPN, active LOW)                  |
+|   [GPIO 13] <--- IR Drop 1 OUT (3.3V safe)                             |
+|   [GPIO 14] <--- IR Drop 2 OUT (3.3V safe)                             |
      |   [GPIO 32] <--- IR Drop 3 OUT (3.3V safe)                             |
      |   [GPIO 33] <--- IR Drop 4 OUT (3.3V safe)                             |
-     |   [GPIO 13] <--- Push Button 1 (to GND)                                |
-     |   [GPIO 14] <--- Push Button 2 (to GND)                                |
-     |   [GPIO 27] <--- Push Button 3 (to GND)                                |
-     |   [GPIO 26] <--- Push Button 4 (to GND)                                |
+|   [GPIO  2] <--- Push Button 1 (to GND; boot strap)                    |
+|   [GPIO  5] <--- Push Button 2 (to GND; boot strap)                    |
+|   [GPIO 12] <--- Push Button 3 (to GND; boot strap)                    |
+|   [GPIO 15] <--- Push Button 4 (to GND; boot strap)                    |
      |   [GPIO 23] <---> 20x4 LCD SDA                                         |
      |   [GPIO 22] ----> 20x4 LCD SCL                                         |
      +------------------------------------------------------------------------+

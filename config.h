@@ -21,26 +21,26 @@
 #define CREDIT_EXPIRY_SECONDS      (2UL * 24UL * 60UL * 60UL)
 
 // ---- Bottle Detection Proximity Sensors -------------------
-#define PIN_SENSOR_A    34     // Upper proximity sensor — board pin P34 / GPIO 34 (input only)
-#define PIN_SENSOR_B    35     // Lower proximity sensor — board pin P35 / GPIO 35 (input only)
-#define PIN_SENSOR_C    2      // Bottle size sensor C — GPIO 2 (boot strap)
-#define PIN_SENSOR_D    15     // Bottle size sensor D — GPIO 15 (boot strap)
+#define PIN_SENSOR_A    16     // Upper proximity sensor — GPIO 16
+#define PIN_SENSOR_B    17     // Lower proximity sensor — GPIO 17
+#define PIN_SENSOR_C    27     // Bottle size sensor C — GPIO 27
+#define PIN_SENSOR_D    26     // Bottle size sensor D — GPIO 26
 #define BOTTLE_SENSOR_STABLE_MS 250
 #define DOOR_CYCLE_MS              10000
 #define BOTTLE_STORAGE_CAPACITY    100
-#define BOTTLE_SENSOR_AB_ACTIVE_LEVEL HIGH
-#define BOTTLE_SENSOR_CD_ACTIVE_LEVEL HIGH
+#define BOTTLE_SENSOR_AB_ACTIVE_LEVEL LOW
+#define BOTTLE_SENSOR_CD_ACTIVE_LEVEL LOW
 
 // ---- Product Selection Buttons (4 Buttons) -----------------
-#define PIN_BTN_1       13     // Product 1 button — board pin P13 / GPIO 13 (internal pull-up)
-#define PIN_BTN_2       14     // Product 2 button — board pin P14 / GPIO 14 (internal pull-up)
-#define PIN_BTN_3       27     // Product 3 button — board pin P27 / GPIO 27 (internal pull-up)
-#define PIN_BTN_4       26     // Product 4 button — board pin P26 / GPIO 26 (internal pull-up)
+#define PIN_BTN_1       2      // Product 1 button — GPIO 2 (boot strap; do not press during reset)
+#define PIN_BTN_2       5      // Product 2 button — GPIO 5 (boot strap; do not press during reset)
+#define PIN_BTN_3       12     // Product 3 button — GPIO 12 (boot strap; do not press during reset)
+#define PIN_BTN_4       15     // Product 4 button — GPIO 15 (boot strap; do not press during reset)
 #define BTN_DEBOUNCE_MS 50
 
 // ---- IR Drop / Delivery Sensors (4 Sensors) ----------------
-#define PIN_IR_1        16     // IR sensor 1 — board pin P16 / GPIO 16 (input)
-#define PIN_IR_2        17     // IR sensor 2 — board pin P17 / GPIO 17 (input)
+#define PIN_IR_1        13     // IR sensor 1 — board pin P13 / GPIO 13 (input)
+#define PIN_IR_2        14     // IR sensor 2 — board pin P14 / GPIO 14 (input)
 #define PIN_IR_3        32     // IR sensor 3 — board pin P32 / GPIO 32 (input)
 #define PIN_IR_4        33     // IR sensor 4 — board pin P33 / GPIO 33 (input)
 

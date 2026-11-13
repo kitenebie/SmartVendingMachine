@@ -8,14 +8,14 @@ The old [Plan.jpg](Plan.jpg) is a **concept sketch, not a wiring schematic**. It
 
 | Part | GPIO |
 | --- | --- |
-| Bottle sensor A, B, C, D | 34, 35, 2, 15 |
-| Product buttons 1–4 | 13, 14, 27, 26 |
-| Drop sensors 1–4 | 16, 17, 32, 33 |
+| Bottle sensors A–D | 16, 17, 27, 26 |
+| Product buttons 1–4 | 2, 5, 12, 15 |
+| Drop sensors 1–4 | 13, 14, 32, 33 |
 | Dispenser servos 1–4 | 18, 19, 21, 25 |
 | Tube door servo | 4 |
 | LCD SDA, SCL | 23, 22 |
 
-Buttons use internal pullups and connect to ground when pressed. The drop sensors are configured active LOW. Bottle sensors A–D are configured active HIGH and must hold a valid size pattern for 250 ms. GPIO 34 and 35 have no internal pull resistors: connect a 10 kΩ resistor from each sensor input (A and B) to GND to prevent false detection. C and D use runtime pull-downs on GPIO 2 and 15; those boot-strapping pins still require safe sensor output levels during startup. Set the door angles and continuous-rotation dispenser stop/push duty values in `config.h` for your mechanism before stocking the machine.
+Buttons use internal pullups and connect to ground when pressed. E18-D80NK NPN outputs pull LOW on detection (even if the sensor's indicator LED lights); bottle inputs use internal pullups, so no external pull resistors are needed on GPIO 16, 17, 27, and 26. A valid bottle pattern must remain for 250 ms. Product buttons use boot-strapping pins 2, 5, 12, and 15: leave them unpressed while the ESP32 resets. Keep all sensor outputs at or below 3.3 V. Set the door angles and continuous-rotation dispenser stop/push duty values in `config.h` for your mechanism before stocking the machine.
 
 ## Build and first start
 
