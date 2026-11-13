@@ -30,7 +30,7 @@ AsyncWebServer server(80);
 static void printBanner() {
     Serial.println();
     Serial.println("========================================");
-    Serial.println("   ESP32 SMART VENDING MACHINE v1.0");
+    Serial.println("   BOTTLE VENDING MACHINE v1.0");
     Serial.println("   Mode: Hotspot + Web Inventory + Vending");
     Serial.println("========================================");
     Serial.println();
