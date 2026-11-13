@@ -4,22 +4,11 @@
 
 This document provides the complete hardware wiring diagram, pin mapping, power isolation rules, and step-by-step procedures to build and connect the **ESP32 38-Pin Smart Vending Machine (4 Products Edition)** with a **20x4 I2C LCD Display (PCF8574 Module)** and integrated **Web Inventory Management**.
 
-## Component photo reference
+## Bottle sensors and LCD status
 
-![Photorealistic visual reference of an ESP32, buzzer, and proximity sensors C and D](diagrams/components-reference.png)
+![ESP32 DevKit wiring for Sensors A–D with LCD full-storage status](diagrams/sensor-buzzer-wiring.svg)
 
-AI-generated visual reference; actual modules may look different. Use the wiring diagram below for exact pin connections.
-
-## Bottle sensors and buzzer pin diagram
-
-![ESP32 DevKit wiring for Sensors A–D and the 3-pin active buzzer](diagrams/sensor-buzzer-wiring.png)
-
-Vector version: [sensor-buzzer-wiring.svg](diagrams/sensor-buzzer-wiring.svg).
-
-## Bottle storage buzzer
-
-- 3-pin active buzzer: `SIG/S` → ESP32 `GPIO 5`; `VCC/+` → supply rated for the module; `GND/−` → common ground.
-- Use a module with a 3.3 V-compatible signal input that does not pull GPIO 5 during reset; otherwise, add a suitable transistor driver. GPIO 5 is a boot-strap pin. The buzzer sounds for 500 ms when storage reaches capacity.
+At 100 bottles, the 20×4 LCD displays `The Machine is Full`. No buzzer is used.
 
 > [!TIP]
 > **✨ DYNAMIC WEB PIN CONFIGURATION:**
@@ -35,7 +24,6 @@ Vector version: [sensor-buzzer-wiring.svg](diagrams/sensor-buzzer-wiring.svg).
 | **Bottle Proximity Sensor B** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 35 / P35** | Same voltage protection as Sensor A; both sensors validate one bottle. |
 | **Bottle Size Sensor C** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 2** | 3.3V-safe output required; boot strapping pin. |
 | **Bottle Size Sensor D** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 15** | 3.3V-safe output required; boot strapping pin. |
-| **3-pin Active Buzzer** | Supply rated for the buzzer module | Common GND | Per module; signal input must be 3.3V-compatible | `SIG/S` → **GPIO 5** | GPIO 5 is a boot-strap pin; avoid modules that pull it during reset. |
 | **Product 1 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 13 / P13** | Do **not** connect this button to 5V. |
 | **Product 2 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 14 / P14** | Do **not** connect this button to 5V. |
 | **Product 3 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 27 / P27** | Do **not** connect this button to 5V. |
