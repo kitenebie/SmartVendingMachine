@@ -277,6 +277,8 @@ static void handleStatus(AsyncWebServerRequest* request) {
     result["finishing"] = active.finishing;
     result["door_seconds_remaining"] = bottleDoorSecondsRemaining();
     result["machine_full"] = storedBottleCount >= BOTTLE_STORAGE_CAPACITY || bottleCountSaveFailed;
+    result["bottle_detected"] = active.locked && active.userId == user->id && remaining > 0 &&
+                                !active.finishing && bottleCreditPatternDetected();
     result["credits"] = user->credits;
     uint8_t blockedSensors = blockedDropSensorMask();
     JsonArray blocked = result["blocked_drop_sensors"].to<JsonArray>();

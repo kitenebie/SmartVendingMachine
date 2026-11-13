@@ -36,9 +36,9 @@ body{min-height:100vh;min-height:100svh;display:flex;flex-direction:column}.topb
 </main>
 <div class="modal" id="modal"><div role="dialog" aria-modal="true" aria-labelledby="insert-title" aria-describedby="session-instructions">
   <span class="session-mark" aria-hidden="true"><svg viewBox="0 0 24 32"><path d="M9 2h6v5l2 2v2H7V9l2-2V2Z"/><path d="M7 11h10l2 3v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V14l2-3Z"/></svg></span>
-  <p class="session-kicker">Bottle session active</p><h2 id="insert-title">Insert a bottle</h2>
+  <p class="session-kicker">Bottle session active</p><h2 id="insert-title" tabindex="-1">Insert a bottle</h2>
   <div class="countdown-ring" id="timerRing" role="timer"><span class="countdown-center"><span id="seconds">60</span><small>seconds left</small></span></div>
-  <p id="session-instructions">The door is closed. Insert one bottle, then tap Finish session while its size sensors are lit.</p><p id="sessionNotice" role="status" aria-live="polite"></p><button id="done" type="button">Finish session</button>
+  <p id="session-instructions">The door is closed. Insert one bottle. Finish session becomes available when a valid sensor pattern is detected.</p><p id="sessionNotice" role="status" aria-live="polite"></p><button id="done" type="button" disabled>Finish session</button>
 </div></div>
 <script src="/js/auth.js"></script>
 <script>
@@ -117,9 +117,10 @@ $('insert').onclick = async () => {
   try {
     await api('/api/session/start', {method:'POST'});
     finishRequested = false;
-    $('sessionNotice').textContent = '';
+    $('done').disabled = true;
+    $('sessionNotice').textContent = 'Waiting for a valid bottle sensor pattern.';
     $('modal').style.display = 'grid';
-    $('done').focus();
+    $('insert-title').focus();
     clearInterval(sessionTimer);
     sessionTimer = setInterval(async () => {
       try {
@@ -127,6 +128,12 @@ $('insert').onclick = async () => {
         $('seconds').textContent = status.seconds_remaining;
         $('credits').textContent = status.credits;
         showVendingStatus(status);
+        if (!finishRequested) {
+          $('done').disabled = !status.bottle_detected;
+          $('sessionNotice').textContent = status.bottle_detected
+            ? 'Bottle detected. Finish session to claim credits.'
+            : 'Waiting for a valid bottle sensor pattern.';
+        }
         if (finishRequested) {
           $('done').disabled = true;
           $('sessionNotice').textContent = status.finishing
@@ -142,7 +149,7 @@ $('insert').onclick = async () => {
           await refresh();
         }
       } catch (error) { message(error.message); }
-    }, 1000);
+    }, 500);
   } catch (error) { message(error.message); }
 };
 $('done').onclick = async () => {
@@ -158,7 +165,7 @@ $('done').onclick = async () => {
     $('modal').style.display = 'none';
     $('insert').focus();
     await refresh();
-  } catch (error) { $('done').disabled = false; $('sessionNotice').textContent = error.message; }
+  } catch (error) { $('sessionNotice').textContent = error.message; }
 };
 $('passwordForm').onsubmit = async event => {
   event.preventDefault();

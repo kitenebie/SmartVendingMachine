@@ -20,8 +20,8 @@ At 100 bottles, the 20×4 LCD displays `The Machine is Full`. No buzzer is used.
 
 | Component | `+` / VCC connection | `−` / GND connection | Required voltage | Signal connection | Notes |
 |:---|:---|:---|:---|:---|:---|
-| **Bottle Proximity Sensor A** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 34 / P34** | `OUT` must be 3.3V max; use a divider/level shifter if its output is 5V. |
-| **Bottle Proximity Sensor B** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 35 / P35** | Same voltage protection as Sensor A; both sensors validate one bottle. |
+| **Bottle Proximity Sensor A** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 34 / P34** | 3.3V max; add a 10 kΩ pull-down from signal to GND. |
+| **Bottle Proximity Sensor B** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 35 / P35** | Same voltage protection and 10 kΩ pull-down as Sensor A. |
 | **Bottle Size Sensor C** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 2** | 3.3V-safe output required; boot strapping pin. |
 | **Bottle Size Sensor D** | External `+5V` | Common GND | `5V` | `OUT` → **GPIO 15** | 3.3V-safe output required; boot strapping pin. |
 | **Product 1 Selection Button** | None | One button leg → ESP32 GND | `3.3V` internal pull-up | Other button leg → **GPIO 13 / P13** | Do **not** connect this button to 5V. |

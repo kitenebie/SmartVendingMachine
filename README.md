@@ -15,7 +15,7 @@ The old [Plan.jpg](Plan.jpg) is a **concept sketch, not a wiring schematic**. It
 | Tube door servo | 4 |
 | LCD SDA, SCL | 23, 22 |
 
-Buttons use internal pullups and connect to ground when pressed. The drop sensors are configured active LOW. Bottle sensors A–D are configured active HIGH; check each sensor's output signal and adjust the levels in [config.h](config.h) if needed. GPIO 34 and 35 are input-only with no internal pullups; GPIO 2 and 15 are boot-strapping pins, so check sensor output levels during startup. Set the door angles and continuous-rotation dispenser stop/push duty values in `config.h` for your mechanism before stocking the machine.
+Buttons use internal pullups and connect to ground when pressed. The drop sensors are configured active LOW. Bottle sensors A–D are configured active HIGH and must hold a valid size pattern for 250 ms. GPIO 34 and 35 have no internal pull resistors: connect a 10 kΩ resistor from each sensor input (A and B) to GND to prevent false detection. C and D use runtime pull-downs on GPIO 2 and 15; those boot-strapping pins still require safe sensor output levels during startup. Set the door angles and continuous-rotation dispenser stop/push duty values in `config.h` for your mechanism before stocking the machine.
 
 ## Build and first start
 

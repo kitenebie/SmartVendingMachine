@@ -8,7 +8,9 @@
 static SemaphoreHandle_t hardwareMutex;
 static bool collectionEnabled = false, bottleReady = false, doorOpen = false, doorCycleActive = false;
 static bool bottleStorageFull = false;
+static bool bottlePatternArmed = false, bottlePatternTiming = false, bottlePatternReady = false;
 static uint32_t dispenseStartedAt = 0, doorCycleStartedAt = 0;
+static uint32_t bottlePatternStartedAt = 0;
 static int doorCountdownShown = 0;
 static int bottleCredits = 0;
 static uint8_t dispensingSlot = 0, buttonPress = 0;
@@ -18,6 +20,28 @@ static DispenseResult dispenseResult = DispenseResult::None;
 static const uint32_t SERVO_MIN = 3277, SERVO_MAX = 6553;
 static constexpr int bottleCreditsForSensors(bool sensorA, bool sensorB, bool sensorC, bool sensorD) {
     return !sensorA || !sensorB || (!sensorC && sensorD) ? 0 : sensorD ? 5 : sensorC ? 3 : 1;
+}
+static int readBottleCredits() {
+    const PinConfig& p = getPinConfig();
+    return bottleCreditsForSensors(
+        digitalRead(p.sensorA) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL,
+        digitalRead(p.sensorB) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL,
+        digitalRead(p.sensorC) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL,
+        digitalRead(p.sensorD) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL);
+}
+static bool updateBottlePattern() {
+    if (!readBottleCredits()) {
+        bottlePatternArmed = true;
+        bottlePatternTiming = bottlePatternReady = false;
+        return false;
+    }
+    if (!bottlePatternArmed) return false;
+    if (!bottlePatternTiming) {
+        bottlePatternStartedAt = millis();
+        bottlePatternTiming = true;
+    }
+    if (millis() - bottlePatternStartedAt >= BOTTLE_SENSOR_STABLE_MS) bottlePatternReady = true;
+    return bottlePatternReady;
 }
 static_assert(DOOR_CYCLE_MS == 10000, "Door countdown must stay at 10 seconds");
 static_assert(bottleCreditsForSensors(true, true, false, false) == 1 &&
@@ -87,7 +111,7 @@ bool initVendingMachine() {
     if (!hardwareMutex) return false;
     const PinConfig& p = getPinConfig();
     pinMode(p.sensorA, INPUT); pinMode(p.sensorB, INPUT);
-    pinMode(p.sensorC, INPUT); pinMode(p.sensorD, INPUT);
+    pinMode(p.sensorC, INPUT_PULLDOWN); pinMode(p.sensorD, INPUT_PULLDOWN);
     const int buttons[4] = {p.btn1, p.btn2, p.btn3, p.btn4};
     const int sensors[4] = {p.ir1, p.ir2, p.ir3, p.ir4};
     for (int i = 0; i < 4; ++i) {
@@ -109,8 +133,15 @@ bool initVendingMachine() {
 void setBottleCollectionEnabled(bool enabled) {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
     collectionEnabled = enabled;
-    if (enabled) door(false);
-    else if (!doorCycleActive) { bottleReady = false; bottleCredits = 0; door(false); }
+    if (enabled) {
+        bottlePatternArmed = readBottleCredits() == 0;
+        bottlePatternTiming = bottlePatternReady = false;
+        door(false);
+    } else if (!doorCycleActive) {
+        bottleReady = false; bottleCredits = 0;
+        bottlePatternArmed = bottlePatternTiming = bottlePatternReady = false;
+        door(false);
+    }
     xSemaphoreGive(hardwareMutex);
 }
 void setBottleStorageFull(bool full) {
@@ -134,20 +165,26 @@ bool bottleDetectionPending() {
     xSemaphoreGive(hardwareMutex);
     return pending;
 }
+bool bottleCreditPatternDetected() {
+    xSemaphoreTake(hardwareMutex, portMAX_DELAY);
+    bool detected = collectionEnabled && !bottleStorageFull && !bottleReady && !doorCycleActive && updateBottlePattern();
+    xSemaphoreGive(hardwareMutex);
+    return detected;
+}
 int finishBottleCollection() {
     xSemaphoreTake(hardwareMutex, portMAX_DELAY);
     if (!collectionEnabled || bottleStorageFull || bottleReady || doorCycleActive) {
         xSemaphoreGive(hardwareMutex);
         return -1;
     }
-    const PinConfig& p = getPinConfig();
-    bool sensorA = digitalRead(p.sensorA) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
-    bool sensorB = digitalRead(p.sensorB) == BOTTLE_SENSOR_AB_ACTIVE_LEVEL;
-    bool sensorC = digitalRead(p.sensorC) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
-    bool sensorD = digitalRead(p.sensorD) == BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
-    bottleCredits = bottleCreditsForSensors(sensorA, sensorB, sensorC, sensorD);
-    if (!bottleCredits) {
-        bool noBottle = !sensorA && !sensorB && !sensorC && !sensorD;
+    bool ready = updateBottlePattern();
+    bottleCredits = ready ? readBottleCredits() : 0;
+    if (!ready) {
+        const PinConfig& p = getPinConfig();
+        bool noBottle = digitalRead(p.sensorA) != BOTTLE_SENSOR_AB_ACTIVE_LEVEL &&
+                        digitalRead(p.sensorB) != BOTTLE_SENSOR_AB_ACTIVE_LEVEL &&
+                        digitalRead(p.sensorC) != BOTTLE_SENSOR_CD_ACTIVE_LEVEL &&
+                        digitalRead(p.sensorD) != BOTTLE_SENSOR_CD_ACTIVE_LEVEL;
         xSemaphoreGive(hardwareMutex);
         return noBottle ? 0 : -1;
     }

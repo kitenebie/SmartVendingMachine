@@ -166,7 +166,7 @@ Sensor 5V Signal OUT ────► [ 1.0 kΩ Resistor ] ────┬──�
 
 ### Step 2: Bottle Chute (Dual Validation and Door)
 1. I-mount ang Sensor A (Upper) at Sensor B (Lower) sa validation area ng tube.
-2. Ikonekta ang Sensor A ➔ **GPIO 34** at Sensor B ➔ **GPIO 35**.
+2. Ikonekta ang Sensor A ➔ **GPIO 34** at Sensor B ➔ **GPIO 35**. Maglagay ng tig-10 kΩ pull-down resistor mula GPIO 34 at GPIO 35 papuntang GND dahil walang internal pull resistor ang mga pin na ito.
 3. Ikonekta ang signal ng 180° tube-door servo ➔ **GPIO 4**. Ang VCC nito ay dapat sa hiwalay at sapat na 5 V supply; pag-isahin ang GND ng supply at ESP32.
 
 ### Step 3: Product Compartments & Dispenser Servos

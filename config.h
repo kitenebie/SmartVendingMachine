@@ -25,6 +25,7 @@
 #define PIN_SENSOR_B    35     // Lower proximity sensor — board pin P35 / GPIO 35 (input only)
 #define PIN_SENSOR_C    2      // Bottle size sensor C — GPIO 2 (boot strap)
 #define PIN_SENSOR_D    15     // Bottle size sensor D — GPIO 15 (boot strap)
+#define BOTTLE_SENSOR_STABLE_MS 250
 #define DOOR_CYCLE_MS              10000
 #define BOTTLE_STORAGE_CAPACITY    100
 #define BOTTLE_SENSOR_AB_ACTIVE_LEVEL HIGH

@@ -74,7 +74,7 @@
   <text x="90" y="650" class="label">Sensor power and safe signal levels</text>
   <text x="90" y="686" class="detail">All sensor GND wires → ESP32 GND (shared ground).</text>
   <text x="90" y="716" class="detail">Sensor OUT must be ≤ 3.3 V; level-shift any 5 V output.</text>
-  <text x="90" y="746" class="small">GPIO 34/35 are input-only; GPIO 2/15 affect ESP32 boot. Check sensor levels before startup.</text>
+  <text x="90" y="746" class="small">Add 10 kΩ pull-downs to GPIO 34/35; GPIO 2/15 are boot-strapping pins.</text>
 
   <rect x="830" y="610" width="785" height="160" rx="16" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
   <text x="856" y="650" class="label">Full storage display</text>

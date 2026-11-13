@@ -8,6 +8,7 @@ void setBottleCollectionEnabled(bool enabled);
 void setBottleStorageFull(bool full);
 bool consumeValidatedBottle(int& credits);
 bool bottleDetectionPending();
+bool bottleCreditPatternDetected();
 int finishBottleCollection();
 bool startBottleDoorCycle();
 uint32_t bottleDoorSecondsRemaining();
